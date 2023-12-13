@@ -24,7 +24,8 @@ export default defineConfig({
         text: '前端',
         items: [
           { text: 'HTML和CSS', link: '/html/html' },
-          { text: 'md 语法', link: '/markdown-examples' }
+          { text: '浏览器渲染机制', link: '/clientrender/render.md' },
+          { text: 'JavaScript', link: '/javascript/js' }
         ]
       }
     ],
