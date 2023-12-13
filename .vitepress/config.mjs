@@ -23,8 +23,8 @@ export default defineConfig({
       {
         text: '前端',
         items: [
-          { text: 'Html知识点', link: '/html/html' },
-          { text: 'Css知识点', link: '/api-examples' }
+          { text: 'HTML和CSS', link: '/html/html' },
+          { text: 'md 语法', link: '/markdown-examples' }
         ]
       }
     ],
