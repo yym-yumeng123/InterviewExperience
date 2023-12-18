@@ -5,6 +5,9 @@ export default defineConfig({
   title: "学海无涯",
   description: "吾日三省吾身",
   srcDir: "src",
+  markdown: {
+    math: true
+  },
   themeConfig: {
     // https://vitepress.dev/reference/default-theme-config
     // 设置导航栏
@@ -24,14 +27,16 @@ export default defineConfig({
         text: '前端',
         items: [
           { text: 'HTML和CSS', link: '/html/html' },
-          { text: '浏览器渲染机制', link: '/clientrender/render.md' },
-          { text: 'JavaScript', link: '/javascript/js' }
+          { text: '浏览器渲染机制', link: '/clientrender/render' },
+          { text: 'JavaScript', link: '/javascript/js' },
+          { text: 'JavaScript手写代码', link: '/javascript/js_code' }
         ]
       }
     ],
 
     socialLinks: [
       { icon: 'github', link: 'https://github.com/yym-yumeng123/InterviewExperience' }
-    ]
+    ],
+
   }
 })
