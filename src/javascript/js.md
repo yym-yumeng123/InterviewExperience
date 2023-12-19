@@ -211,3 +211,11 @@ arr.sort(function(a,b) => {
 ## 深拷贝和浅拷贝
 
 ## JS 宏任务和微任务
+
+
+## cookie 和 session
+
+1. cookie 存储在浏览器端; session 存储在服务端;
+2. cookie 以明文的方式存放在客户端, 安全性较低; session 存在于服务器中, 安全性较好
+3. cookie 设置内容过多会增大报文体积, 影响传输效率; session 数据存储在服务器, 通过cookie传递id, 不影响效率
+4. 浏览器限制单个 cookie 保存数据不能超过 4k; session 存储在服务器无限制 
