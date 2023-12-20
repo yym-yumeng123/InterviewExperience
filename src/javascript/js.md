@@ -1,6 +1,12 @@
-# JavaScript
+---
+outline: deep
+# sidebar: false 左边侧边栏
+# aside: left
+---
 
-## 异步加载 JS
+## JavaScript
+
+### 异步加载 JS
 
 ```js {4,7,10}
 // 延迟脚本可选.表示脚本可以延迟到文档完全被解析和显示之后再执行; 有顺序
@@ -15,7 +21,7 @@
 <script src="" type="text/javascript" />
 ```
 
-## JS 数据类型
+### JS 数据类型
 
 - 基本类型: `string number boolean undefined null symbol bigint`
   - `BigInt`: 这是一种可以表示任意大的整数的数据类型。BigInt 类型的数值在其末尾加 n
@@ -24,7 +30,7 @@
   - `Symbol`: 这是一种唯一且不可变的数据类型，经常用作对象属性的键。
 - 引用类型: `object`
 
-## 为什么 `0.1 + 0.2 != 0.3`
+### 为什么 `0.1 + 0.2 != 0.3`
 
 JS 中`number`类型包括: 浮点和整数; 浮点数采用科学技术法来表示 $(1.4 * 10^9)$
 
@@ -34,12 +40,12 @@ JS 所采用的`IEEE 754`是二进制浮点数的算术标准, 这个标准里�
 
 当我们使用加减法的时候，由于需要先对齐（也就是把指数对齐，过程中产生移位），再计算，所以这个精度会进一步丢失
 
-## null undefined 区别
+### null undefined 区别
 
 - `null` 是一个表示"无"的对象(空对象指针), 转为数值为 0
 - `undefiend` 是一个表示"无"的原始值, 转为数值为 NaN
 
-## 立即执行函数
+### 立即执行函数
 
 - 可以形成一个作用域,和全局隔开,不会污染全局
 - 另一方面也是防止命名冲突的影响
@@ -50,12 +56,12 @@ JS 所采用的`IEEE 754`是二进制浮点数的算术标准, 这个标准里�
 })()
 ```
 
-## == 和 ===
+### == 和 ===
 
 - `==` 比较的是值, 类型会隐式转换, `别用这个, 一直使用全等`
 - `===` 比较的值和类型都相等
 
-## typeof instanceof 的作用和区别
+### typeof instanceof 的作用和区别
 
 - 作用都是类型识别
 - `typeof` 操作符
@@ -74,12 +80,12 @@ typeof null // "object"
 [] instanceof Array // true
 ```
 
-## void 0 和 undefined
+### void 0 和 undefined
 
 - `undefined` 是一种数据类型, 唯一值 undefined, 声明一个变量但不赋值, 就是 undefined, 可以被重新赋值
 - `void运算` 是 js 的一种运算符, 评估一个表达式但不返回值 `void(0) void 0 void(null)` 都会返回`undefined`, 任何情况都会返回 undefiend, 更安全
 
-## JS 作用域
+### JS 作用域
 
 - 全局作用域和函数作用域
 - ES6 引入 `let const` 关键字定义的变量具有块级作用域, 在 `{}`（花括号）内部定义的变量只能在该块内访问，超出该块则无法访问
@@ -100,7 +106,7 @@ function fun(a) {
 fun(100)
 ```
 
-## JS 对象
+### JS 对象
 
 - 对象是通过 `new` 操作符构建的, 对象间不相等
 - 对象是引用类型, 引用类型 => 变量存储的是地址, 地址指向实际的值
@@ -108,14 +114,14 @@ fun(100)
 - 对象查找属性|方法: 对象本身找 -> 构造函数中找 -> 对象原型中找 -> 构造函数原型中找 -> 对象上一层原型 (原型链)
 
 ```js
-[1, 2, 3] === [1, 2, 3] // false
+;[1, 2, 3] === [1, 2, 3] // false
 ```
 
-## new 操作符做了什么
+### new 操作符做了什么
 
 1. 创建了一个空对象
 2. 将空对象的原型, 指向于构造函数的原型
-3. 将空对象作为构造函数的上下文(改变this指向)
+3. 将空对象作为构造函数的上下文(改变 this 指向)
 4. 对构造函数有返回值的处理判断
 
 ```js
@@ -127,14 +133,14 @@ function create(fn, ...args) {
 }
 ```
 
-## call apply bind 的区别
+### call apply bind 的区别
 
 - `call | apply | bind` 都是为了改变函数体内部 this 的指向
 - `call | apply` 接收的参数不同, apply 第二个参数接收数组
 - `bind()`方法会创建一个新函数，称为绑定函数，当调用这个绑定函数时，绑定函数会以创建它时传入 bind()方法的第一个参数作为 this
-- bind 是返回对应函数，便于稍后调用; apply 、call 则是立即调用 
+- bind 是返回对应函数，便于稍后调用; apply 、call 则是立即调用
 
-## JS 闭包
+### JS 闭包
 
 - 闭包是指有权访问另外一个函数作用域中的变量的函数; 闭包让开发者可以`从内部函数访问外部函数的作用域`
 - 内部的函数存在外部作用域的引用就会导致闭包
@@ -164,9 +170,9 @@ for(var i = 0; i < list.length; i++) {
 }
 ```
 
-## JS 原型链
+### JS 原型链
 
-- 理解原型对象: 无论什么时候,只要创建了新函数, 就会有一组特定的规则为该函数创建一个prototype属性, 这个属性指向函数的原型对象, 默认情况下, 所有原型对象都会自动获得一个constructor(构造函数)属性, 这个属性是指向prototyp属性所在的指针
+- 理解原型对象: 无论什么时候,只要创建了新函数, 就会有一组特定的规则为该函数创建一个 prototype 属性, 这个属性指向函数的原型对象, 默认情况下, 所有原型对象都会自动获得一个 constructor(构造函数)属性, 这个属性是指向 prototyp 属性所在的指针
 - 原型: 对象可以共享属性和方法
 - 实例化对象原型`__proto__`指向构造函数的`prototype`属性; `prototype`是函数才有的属性，而`__proto__`是每个对象都有的属性
 - 什么是原型链?
@@ -187,18 +193,17 @@ var p = new Person("Hello")
 p.sayName()
 ```
 
-## 判断变量是不是数组
+### 判断变量是不是数组
 
 - `Array.isArray()`
 - `instanceof` => `arr instanceof Array`
-- `Object.prototype.toString.call(arr)` 
+- `Object.prototype.toString.call(arr)`
 - etc.
 
-
-## JS sort()
+### JS sort()
 
 - 对于数组的元素进行排序, 返回数组, 默认排序顺序根据字符串 `Unicode` 码点
-- V8引擎 sort 函数, 数量小于10使用 `InsertSort`, 大于10 使用 `QuickSort`
+- V8 引擎 sort 函数, 数量小于 10 使用 `InsertSort`, 大于 10 使用 `QuickSort`
 
 ```js
 const arr = [1,2,34, 5, 5, '34', '35']
@@ -208,14 +213,68 @@ arr.sort(function(a,b) => {
 })
 ```
 
-## 深拷贝和浅拷贝
+### 深拷贝和浅拷贝
 
-## JS 宏任务和微任务
+1. 浅拷贝: 只复制引用, 未复制真正的值
+2. 深拷贝: 复制真正的值
 
+```js
+// 浅拷贝
+const arr = [1, 2, 3]
+const arr1 = arr
+const obj = { a: 1, b: 2 }
+const obj1 = Object.assign(obj)
 
-## cookie 和 session
+// 深拷贝
+const obj2 = JSON.parse(JSON.stringify(obj))
+
+// 我想要真正的值: 把源数据的每个值放到新的变量中
+const newObj = {}
+newObj[key] = obj[key]
+```
+
+### cookie 和 session
 
 1. cookie 存储在浏览器端; session 存储在服务端;
 2. cookie 以明文的方式存放在客户端, 安全性较低; session 存在于服务器中, 安全性较好
-3. cookie 设置内容过多会增大报文体积, 影响传输效率; session 数据存储在服务器, 通过cookie传递id, 不影响效率
-4. 浏览器限制单个 cookie 保存数据不能超过 4k; session 存储在服务器无限制 
+3. cookie 设置内容过多会增大报文体积, 影响传输效率; session 数据存储在服务器, 通过 cookie 传递 id, 不影响效率
+4. 浏览器限制单个 cookie 保存数据不能超过 4k; session 存储在服务器无限制
+
+### cookie localStorage sessionStorage
+
+1. 都是在客户端存储数据
+2. 有效期: local 持久化存储; session 浏览器关闭之前有效; cookie 可以设置过期时间
+3. 大小: cookie 只有4k; 其它两个存储 5M
+
+
+## ES6+
+
+### var let const
+
+- 都可以声明变量
+- 变量提升: var声明的变量会提升; let/const 不会
+- var 可以多次声明同一个变量; let/const 不行
+- var/let 声明的变量可以再次赋值; const 常量不能重新赋值
+- let/const 有块作用域; var 没有自己的作用域
+
+### 普通函数和箭头函数
+
+1. this 指向的问题
+   - 箭头函数的this是在箭头函数定义时就决定的, 而且不可修改; 指向定义时, 外层第一个普通函数this
+2. 箭头函数不能 new
+3. 箭头函数没有原型 prototype
+4. 箭头函数没有arguments
+
+### find filter some every
+
+- find 返回符合条件的第一个元素, 查找
+- filter 返回新数组, 过滤
+- some 元素里只要有一个元素满足条件为真, 就返回 true
+- every 元素里所有元素都满足条件采薇真, 返回 true
+
+
+### Promise
+
+是异步编程的一种解决方案, 比传统的回调函数更强大
+
+有三种状态: pending、fulfilled、rejected

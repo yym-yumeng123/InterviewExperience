@@ -1,7 +1,7 @@
 ---
 outline: deep
 # sidebar: false 左边侧边栏
-# aside: left 
+# aside: left
 ---
 
 ## HTML 知识点
@@ -91,6 +91,39 @@ outline: deep
 5. get 主要是拿数据; post 给数据
 
 ## CSS 知识点
+
+### ::before 和 :after 双冒号和但冒号区别
+
+1. `::伪元素` | `:伪类`
+2. ::before 元素之前; :after 元素之后(清除浮动)
+
+### chrome 支持小于 12px 的文字
+
+1. `transform: scale(.3)`
+
+### 自适应 响应式
+
+1. 移动端自适应通过设置计算 html {font-size: "px"}, 配合使用 `rem`
+2. 响应式: 一个 url 可以响应多端
+   - 媒体查询
+   - 响应式图片
+
+```js
+// 自适应
+window.onresize = function() {
+  document.documentElement.style.fontSize = document.documentElement.clientWidth / 10 + 'px'
+}
+
+// 响应式
+@media only screen and (max-width 1000px) {}
+
+// 响应式图片
+<picture>
+  <source srcset="1.jpg"media='(min-width:1000px)'>
+  <source srcset="2.jpg"media='(min-width:700px)'>
+  <img srcset="3.jpg">
+</picture>
+```
 
 ### 元素居中
 
@@ -184,9 +217,9 @@ vertical-align:top
 
 ### 让一个元素看不见?
 
-- `opacity: 0` 透明度为 0, 看不见, 但占位置; 取值范围 0-1;  继承父元素的 opactiy
+- `opacity: 0` 透明度为 0, 看不见, 但占位置; 取值范围 0-1; 继承父元素的 opactiy
 - `transparent` 效果也是透明
-- `rgba(0, 0, 0, 0)` red green blue;  a 表示透明度 0-1; 后代不会继承
+- `rgba(0, 0, 0, 0)` red green blue; a 表示透明度 0-1; 后代不会继承
 - `visibility: hidden` 元素消失, 占据原来的位置;
 - `display: none` 元素消失, 不占据位置;
 
@@ -272,16 +305,15 @@ BFC 特性
 </body>
 ```
 
-
 ### 白屏 和 FOUC(无样式内容闪烁)
 
 - 白屏
-  - 把样式放在底部, 对于IE浏览器, 在某些场景下(刷新, 新窗口打开等)页面会出现白屏, 而不是内容逐步展现
-  - 使用`@import`标签, 既使CSS放入link, 并且放在头部, 也可能出现白屏
-- fouc出现的条件
-  - 样式表放在页面底部,此方式由于IE会先加载整个HTML文档的DOM，然后再去导入外部的CSS文件，因此，在页面DOM加载完成到CSS导入完成中间会有一段时间页面上的内容是没有样式的，这段时间的长短跟网速，电脑速度都有关系。
-  - 有多个样式表, 放在html不同位置
-  - 使用`@import`方法导入css, 
+  - 把样式放在底部, 对于 IE 浏览器, 在某些场景下(刷新, 新窗口打开等)页面会出现白屏, 而不是内容逐步展现
+  - 使用`@import`标签, 既使 CSS 放入 link, 并且放在头部, 也可能出现白屏
+- fouc 出现的条件
+  - 样式表放在页面底部,此方式由于 IE 会先加载整个 HTML 文档的 DOM，然后再去导入外部的 CSS 文件，因此，在页面 DOM 加载完成到 CSS 导入完成中间会有一段时间页面上的内容是没有样式的，这段时间的长短跟网速，电脑速度都有关系。
+  - 有多个样式表, 放在 html 不同位置
+  - 使用`@import`方法导入 css,
 
 **原理**
 
@@ -290,6 +322,5 @@ BFC 特性
 **解决方法**
 
 - 使用`link`标签将样式表放在文档`head`中。
-- 将JS放在底部
+- 将 JS 放在底部
   - 脚本会阻塞后面内容的呈现
-
