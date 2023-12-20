@@ -1,3 +1,11 @@
+---
+outline: deep
+title: "手写代码"
+# sidebar: false 左边侧边栏
+# aside: left
+---
+
+
 # 数组
 
 ## JS 数组去重

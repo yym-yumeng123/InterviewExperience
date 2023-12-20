@@ -1,5 +1,6 @@
 ---
 outline: deep
+title: "JavaScript"
 # sidebar: false 左边侧边栏
 # aside: left
 ---

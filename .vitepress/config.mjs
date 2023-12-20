@@ -36,7 +36,8 @@ export default defineConfig({
       {
         text: '数据结构',
         items: [
-          {text: "数组_链表_栈_队列" ,link: "/datastructure/data"}
+          {text: "数组_链表_栈_队列" ,link: "/datastructure/data"},
+          {text: "leetcode算法", link: "/datastructure/code"}
         ]
       }
     ],
