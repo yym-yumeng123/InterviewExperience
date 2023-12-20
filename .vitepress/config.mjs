@@ -32,6 +32,12 @@ export default defineConfig({
           { text: 'JavaScript手写代码', link: '/javascript/js_code' },
           { text: 'Webpack', link: '/javascript/webpack' }
         ]
+      },
+      {
+        text: '数据结构',
+        items: [
+          {text: "数组_链表_栈_队列" ,link: "/datastructure/data"}
+        ]
       }
     ],
 
