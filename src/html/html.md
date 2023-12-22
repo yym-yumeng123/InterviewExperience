@@ -93,6 +93,91 @@ title: "HTML/CSS"
 
 ## CSS 知识点
 
+### css 元素的宽高 & 文档流
+
+1. 内联元素的宽高
+   - 宽度由 padding, margin border 以及里面的内容影响, margin padding 不影响高度
+   - 高度由行高决定
+2. 块级元素的宽高
+   - 宽度自适应父元素
+   - 高度由`内部文档流中元素的总和决定的`
+3. 文档流
+   - 文档流中的内联元素会从左到右并列排成一行, 空间不够, 会换行依次排列; 块级元素从上到下
+   - 脱离文档流: `浮动 绝对定位 fixed`
+4. 字体的高度由设计师给一个一个行高; 字和字通过基线对齐
+5. 多个 `inline-block` 元素之间有空格, 尽量不用 inline-block; 手动添加空格 `&nbsp;`
+
+### 文字溢出省略效果
+
+```css
+/* 一行文本 */
+div {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 多行文本 */
+div {
+  display: --webkit-box;
+  --webkit-line-clamp: 2;
+  --webkit-box-orient: vertical;
+  overflow: hidden;
+}
+```
+
+### 汉字对齐
+
+```html
+<style>
+  span {
+    text-align: justify;
+    overflow: hidden;
+  }
+  /* 每一个行内元素添加一个伪元素, 占据100%宽度; justify */
+  span::after {
+    content: "";
+    dispaly: inline-block;
+    width: 100%;
+  }
+</style>
+
+<!-- 内容两边对齐 -->
+<span>姓名</span>
+<span>联系方式</span>
+```
+
+### 1比1 div
+
+```css
+.one {
+  boder: 1px solid red;
+  /* 实现高度撑起来 */
+  padding-top: 100%;
+}
+```
+
+### 堆叠上下文
+
+满足某种条件的div或某种元素, 堆叠上下文
+
+- 根元素(html)
+- z-index != auto 的绝对/相对定位
+- opacity 值 < 1 的
+- podtion: fixed
+
+div 不是平面的,三维概念, 最下到最上层 (在浏览器通过颜色, 位置调试)
+
+1. background
+2. border
+3. 块级元素
+4. 浮动
+5. 内联
+6. z-index: 0
+7. z-index: +
+8. 兄弟元素重叠, 后面的盖在前面的身上
+
+
 ### ::before 和 :after 双冒号和但冒号区别
 
 1. `::伪元素` | `:伪类`
