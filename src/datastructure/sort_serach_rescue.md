@@ -1,3 +1,7 @@
+---
+outline: deep
+---
+
 ## 递归
 
 #### 理解递归
@@ -64,7 +68,6 @@ function f(n) {
 - 限制递归调用的最大深度
   - 递归调用超过一定深度（比如 1000）之后，我们就不继续往下再递归了，直接返回报错
 
-
 ## 排序
 
 #### 如何分析一个排序算法
@@ -81,5 +84,202 @@ function f(n) {
    - 某种排序算法排序之后，如果两个 3 的前后顺序没有改变，那我们就把这种排序算法叫作稳定的排序算法；
    - 如果前后顺序发生变化，那对应的排序算法就叫作不稳定的排序算法。
 
+#### 冒泡排序 (Bubble Sort)
 
-#### 冒泡排序
+冒泡排序`只会操作相邻的两个数据`. 每次冒泡操作都会对相邻的两个元素进行比较, 看是否满足大小关系要求, 如果不满足就让它两互换.一次冒泡会让至少一个元素移动到它应该在的位置，重复 n 次, 就完成了 n 个数据的排序工作
+
+数据 **4，5，6，3，2，1，从小到大**
+
+![冒泡](img/冒泡.webp)
+
+经过一次冒泡操作之后，6 这个元素已经存储在正确的位置上。要想完成所有数据的排序，我们只要进行 6 次这样的冒泡操作就行了
+
+![6次排序](img/排序.webp)
+
+```js
+// 冒泡排序
+function bubbleSort(arr) {
+  if (arr.length <= 1) return
+  let temp = 0
+  for (let i = 0; i < arr.length; i++) {
+    // 提前退出冒泡循环的标志位
+    let flag = false
+    for (let j = 0; j < arr.length - i; j++) {
+      if (arr[j] > arr[j + 1]) {
+        temp = arr[j]
+        arr[j] = arr[j + 1]
+        arr[j + 1] = temp
+        flag = true
+      }
+    }
+    if (!flag) break
+  }
+}
+
+bubbleSort([24, 69, 80, 57, 13, 46, 70]) // [13, 24, 46, 57, 69, 70, 80]
+```
+
+#### 插入排序 (Insertion Sort)
+
+看一个问题: 一个有序的数组，我们往里面添加一个新的数据后，如何继续保持数据有序呢? 遍历数组, 找到数据插入
+
+是一个`动态排序`的过程，即动态地往有序集合中添加数据，我们可以通过这种方法保持集合中的数据一直有序
+
+1. 将数组中的数据分为两个区间，`已排序区间`和`未排序区间`
+2. 初始`已排序区间`只有一个元素，就是`数组的第一个元素`
+3. 插入算法的核心思想是`取未排序区间中的元素`，在已排序区间中`找到合适的插入位置将其插入`，并保证已排序区间数据一直有序
+
+如下图, `红色是已排序区间, 黄色是未排序区间`
+
+![插入](img/插入排序.webp)
+
+插入排序也包含两种操作，一种是`元素的比较`，一种是`元素的移动`
+
+```js
+function insertionSort(arr) {
+  if (arr.length <= 1) return
+
+  for (let i = 1; i < arr.length; i++) {
+    let insertValue = arr[i] // 要插入的值
+    let insertIndex = i - 1 // 下标
+
+    // 查找插入的位置
+    for (; insertIndex >= 0; insertIndex--) {
+      if (arr[insertIndex] > insertValue) {
+        arr[insertIndex + 1] = arr[insertIndex] // 数据移动
+      } else {
+        break
+      }
+    }
+    arr[insertIndex + 1] = insertValue // 插入数据
+  }
+
+  console.log("arr", arr)
+}
+
+insertionSort([24, 69, 80, 57, 13, 46, 70]) // [13, 24, 46, 57, 69, 70, 80]
+```
+
+#### 选择排序 (Selection Sort)
+
+选择排序算法的实现思路有点类似插入排序, 也分已排序区间和未排序区间. 但是选择排序每次会从未排序区间中找到最小的元素, 将其放到已排序区间的末尾
+
+![选择排序](img/选择排序.webp)
+
+```js
+function SelectionSort(arr) {
+  if (arr.length <= 1) return
+
+  for (let j = 0; j < arr.length; j++) {
+    let max = arr[j]
+    let maxIndex = j
+    for (let i = j + 1; i < arr.length; i++) {
+      if (arr[i] > max) {
+        // 找到最大的值
+        max = arr[i] // 80
+        maxIndex = i // 2
+      }
+    }
+
+    if (maxIndex != 0) {
+      swapElements(arr, j, maxIndex)
+    }
+  }
+
+  console.log("arr", arr)
+}
+
+const swapElements = (array, index1, index2) => {
+  let temp = array[index1]
+  array[index1] = array[index2]
+  array[index2] = temp
+}
+
+SelectionSort([24, 69, 80, 57, 13, 46, 70])
+```
+
+#### 归并排序 (Merge Sort)
+
+如果要排序一个数组，我们先把数组从中间分成前后两部分，然后对前后两部分分别排序，再将排好序的两部分合并在一起，这样整个数组就都有序了。
+
+![归并排序](img/归并排序.webp)
+
+归并排序使用的就是分治思想。分治，顾名思义，就是分而治之，将一个大问题分解成小的子问题来解决。小的子问题解决了，大问题也就解决了
+
+分治是一种解决问题的处理思想，递归是一种编程技巧
+
+```js
+function MergeSort(arr) {
+  if (arr.length === 1) return arr
+  const midIdx = Math.floor(arr.length / 2)
+  return Merge(MergeSort(arr.slice(0, midIdx)), MergeSort(arr.slice(midIdx)))
+}
+
+function Merge(leftArr, rightArr) {
+  let temp = []
+  while (leftArr.length > 0 && rightArr.length > 0) {
+    if (leftArr[0] < rightArr[0]) {
+      temp.push(leftArr.shift())
+    } else {
+      temp.push(rightArr.shift())
+    }
+  }
+  return temp.concat(leftArr).concat(rightArr)
+}
+
+MergeSort([24, 69, 80, 57, 13, 46, 70])
+```
+
+#### 快速排序 (Quick Sort)
+
+快排利用的也是分治思想
+
+快排的思想是这样的:
+
+1. 如果要排序数组中`下标从 p 到 r 之间`的一组数据，我们选择 `p 到 r 之间的任意一个数据作为 pivot（分区点）`
+2. 我们遍历 p 到 r 之间的数据，将`小于 pivot 的放到左边`，将`大于 pivot 的放到右边`，将 `pivot 放到中间`
+3. 经过这一步骤之后，数组 `p 到 r 之间的数据就被分成了三个部分`，前面 p 到 q-1 之间都是小于 pivot 的，中间是 pivot，后面的 q+1 到 r 之间是大于 pivot 的。
+
+![](img/快排思想.webp)
+
+用递归排序下标从 p 到 q-1 之间的数据和下标从 q+1 到 r 之间的数据，直到区间缩小为 1，就说明所有的数据都有序了
+
+```md{2,5}
+递推公式：
+quick_sort(p…r) = quick_sort(p…q-1) + quick_sort(q+1… r)
+
+终止条件：
+p >= r
+```
+
+![](img/快排_归并.webp)
+
+```js
+const QuickSort = function (arr) {
+  if (arr.length <= 1) {
+    return arr
+  }
+  var pivotIndex = Math.floor(arr.length / 2)
+  var pivot = arr.splice(pivotIndex, 1)[0]
+  var left = []
+  var right = []
+
+  for (var i = 0; i < arr.length; i++) {
+    if (arr[i] < pivot) {
+      left.push(arr[i])
+    } else {
+      right.push(arr[i])
+    }
+  }
+  return QuickSort(left).concat([pivot], QuickSort(right))
+}
+
+console.log(QuickSort([24, 69, 80, 57, 13, 46, 70]))
+```
+
+#### 选择合适的排序
+
+![](img/排序汇总.webp)
+
+
+## 二分查找
