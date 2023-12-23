@@ -281,5 +281,204 @@ console.log(QuickSort([24, 69, 80, 57, 13, 46, 70]))
 
 ![](img/排序汇总.webp)
 
-
 ## 二分查找
+
+#### 无处不在的二分思想
+
+二分查找是一种非常简单易懂的快速查找算法, 我们平时玩游戏, 猜数字, 告诉你大了、小了, 直到猜中, 这就是二分思想
+
+看一个实际例子: 假如有 1000 条订单, 已经按照金额从小到大排序, 想找等于 19 元 的订单, 可以利用二分思想, 每次都与区间的中间数据比较大小, 缩小查找范围.
+
+![](img/订单二分.webp)
+
+- 二分查找针对的是一个`有序的数据集合`，查找思想有点类似分治思想
+- 每次都通过跟区间的中间元素对比，将待查找的区间缩小为之前的一半，直到找到要查找的元素，或者区间被缩小为 0
+
+#### 二分查找的递归与分递归实现
+
+不重复有序数组查找给定值,
+
+二分查找容易出错的地方:
+
+1. 循环退出条件 `low <= high`, 不是 `low < high`
+2. mid 的取值: `mid=(low+high)/2` 如果数据较大, 两者之和会溢出.
+   - `low+(high-low)/2` 或者 `low+((high-low)>>1)`
+3. low 和 high 的更新: `low=mid+1，high=mid-1`
+
+```js
+// 循环
+function search(arr, val) {
+  let low = 0
+  let high = arr.length - 1
+
+  while (low <= high) {
+    let mid = Math.floor((low + high) / 2)
+    if (arr[mid] === val) {
+      return mid
+    } else if (arr[mid] < val) {
+      low = mid + 1
+    } else {
+      high = mid - 1
+    }
+  }
+
+  return -1
+}
+
+const index = search([1, 3, 5, 7, 9, 11, 15], 3)
+console.log("index", index) // 1
+
+// 递归
+function search(arr, val) {
+  return searchInternally(arr, 0, arr.length - 1, val)
+}
+
+function searchInternally(arr, low, high, val) {
+  if (low > high) {
+    return -1
+  }
+
+  let mid = low + ((high - low) >> 1)
+  if (arr[mid] == val) {
+    return mid
+  } else if (arr[mid] < val) {
+    return searchInternally(arr, mid + 1, high, val)
+  } else {
+    return searchInternally(arr, low, mid - 1, val)
+  }
+}
+
+const index = search([1, 3, 5, 7, 9, 11, 15], 3)
+console.log("index", index)
+```
+
+#### 二分查找的局限性
+
+1. 二分查找依赖的是顺序表结构，简单点说就是数组
+2. 二分查找针对的是有序数据, 数据必须是有序的。如果数据没有序，我们需要先排序
+3. 数据量太小不适合二分查找
+
+#### 二分查找的变形问题
+
+数据是从小到大排列为前提
+
+有序数据集合中`存在重复的数据`，我们希望找到第一个值等于给定值的数据，这样之前的二分查找代码还能继续工作吗？
+
+下图中, `arr[5] arr[6] arr[7]` 都是 8, 第一个等于 8 的数据, 怎么用二分查找
+
+![](img/二分_重复数据.webp)
+
+1. 查找`第一个值`等于给定值的元素
+
+```js
+function search(arr, val) {
+  let low = 0
+  let high = arr.length - 1
+
+  while (low <= high) {
+    let mid = low + ((high - low) >> 1)
+    if (arr[mid] > val) {
+      high = mid - 1
+    } else if (arr[mid] < val) {
+      low = mid + 1
+    } else {
+      // 当 mid 下标为 0, 或者 数组mid 前一个值 和val 不相等, 就是 mid
+      if (mid === 0 || arr[mid - 1] != val) {
+        return mid
+      } else {
+        // 进入这里说明, mid的前一个值和 mid 重复, 设置high的下标
+        high = mid - 1
+      }
+    }
+  }
+
+  return -1
+}
+
+const index = search([1, 3, 4, 5, 6, 8, 8, 8, 11, 18], 8)
+console.log("index", index) // 5
+```
+
+2. 查找`最后一个值`等于给定值的元素
+
+```js
+function search(arr, val) {
+  let low = 0
+  let high = arr.length - 1
+
+  while (low <= high) {
+    let mid = low + ((high - low) >> 1)
+    if (arr[mid] > val) {
+      high = mid - 1
+    } else if (arr[mid] < val) {
+      low = mid + 1
+    } else {
+      // 和上面的区别在于, 我要看是不是最后一个, 或者 后一个是否相等
+      if (mid === arr.length - 1 || arr[mid + 1] != val) {
+        return mid
+      } else {
+        low = mid + 1
+      }
+    }
+  }
+
+  return -1
+}
+
+const index = search([1, 3, 4, 5, 6, 8, 8, 8, 11, 18], 8)
+console.log("index", index) // 7
+```
+
+3. 查找`第一个大于等于`给定值的元素
+
+```js
+function search(arr, val) {
+  let low = 0
+  let high = arr.length - 1
+
+  while (low <= high) {
+    let mid = low + ((high - low) >> 1)
+    if (arr[mid] >= val) {
+      if (mid === 0 || arr[mid - 1] < val) {
+        return mid
+      } else {
+        high = mid - 1
+      }
+    } else {
+      low = mid + 1
+    }
+  }
+
+  return -1
+}
+
+const index = search([3, 4, 6, 7, 11, 18], 5)
+console.log("index", index) // 2
+```
+
+4. 查找`最后一个小于等于`给定值的元素
+
+```js
+function search(arr, val) {
+  let low = 0
+  let high = arr.length - 1
+
+  while (low <= high) {
+    let mid = low + ((high - low) >> 1)
+    if (arr[mid] > val) {
+      high = mid - 1
+    } else {
+      if (mid === arr.length - 1 || arr[mid + 1] > val) {
+        return mid
+      } else {
+        low = mid + 1
+      }
+    }
+  }
+
+  return -1
+}
+
+const index = search([3, 4, 6, 7, 11, 18], 5)
+console.log("index", index) // 1
+```
