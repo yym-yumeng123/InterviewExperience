@@ -30,7 +30,8 @@ export default defineConfig({
           { text: '浏览器渲染机制', link: '/clientrender/render' },
           { text: 'JavaScript', link: '/javascript/js' },
           { text: 'JavaScript手写代码', link: '/javascript/js_code' },
-          { text: 'Webpack', link: '/javascript/webpack' }
+          { text: 'Webpack', link: '/javascript/webpack' },
+          {text: 'React', link: "react/react"}
         ]
       },
       {
