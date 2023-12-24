@@ -39,6 +39,7 @@ export default defineConfig({
         items: [
           {text: "数组_链表_栈_队列" ,link: "/datastructure/data"},
           {text: "递归_排序_二分查找" ,link: "/datastructure/sort_serach_rescue"},
+          {text: "跳表_散列表_哈希算法" ,link: "/datastructure/skip_hashtable"},
           {text: "leetcode算法", link: "/datastructure/leetcode"}
         ]
       }
