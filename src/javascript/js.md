@@ -141,10 +141,41 @@ function create(fn, ...args) {
 - `bind()`方法会创建一个新函数，称为绑定函数，当调用这个绑定函数时，绑定函数会以创建它时传入 bind()方法的第一个参数作为 this
 - bind 是返回对应函数，便于稍后调用; apply 、call 则是立即调用
 
+### JS 函数
+
+函数是什么?
+
+编程里子程序: 一个或多个语句组成完成特点任务 相对独立
+
+- 函数: 有返回值
+- 过程: 无返回值
+- 方法: 类或对象中
+
+JS 中, 函数都有返回值, 只有函数或方法, 返回值由什么确定
+
+- `调用时`输入的参数 params
+- `定义时`的环境 env
+
+```js
+let x = 'x'
+let a = '1'
+function f1(x) return x + a
+
+{
+  let a = '2'
+  f1('x') // 值为多少? x1
+}
+
+// a 是定义时的 a, 不是执行时的 a
+```
+
 ### JS 闭包
 
+如果在函数里面可以访问外面的变量, 那么 `这个函数 + 这些变量 = 闭包`
+
 - 闭包是指有权访问另外一个函数作用域中的变量的函数; 闭包让开发者可以`从内部函数访问外部函数的作用域`
-- 内部的函数存在外部作用域的引用就会导致闭包
+- 闭包特点
+  - 能够让一个函数维持一个变量; 但并不能维持这个变量的值; 尤其变量的值会变化的时候
 - 保护函数的私有变量不受外部的干扰
 - 可以实现方法和属性的私有化
   - 函数作为返回值; 作为参数传递
@@ -170,6 +201,153 @@ for(var i = 0; i < list.length; i++) {
   })(i)
 }
 ```
+
+### this
+
+- this 是参数, 就是一个隐式参数而已, 是 call 的第一个参数
+- new 重新设计了 this
+- 箭头函数不接受 this
+- 调用了才能确定 this, 不调用就不知道 this 指向
+
+```js
+// 显式 this
+fn.call(asThis, 1, 2)
+fn.bind(asThis, 1, 2)()
+fn.method.call(obj, "hi")
+
+// 隐式 this, js 自动传 this, this 指向
+fn(1, 2) // => fn.call(undefined, 1, 2)
+obj.method("hi") // => obj.method.call(obj, 'hi')
+array[0]("hi") // array[0].call(array, 'hi')
+
+let length = 10
+function fn() {
+  console.log(this.length)
+}
+
+// this 题目
+let obj = {
+  length: 5,
+  method(fn) {
+    fn() // fn.call(undefined) window.length 和 let length 没有关系; window.length 和当前 iframe 有关
+    arguments[0] // arguments.0.call(arguments) fn.call(arguments) 2 arguments 实参的长度
+  },
+}
+obj.method(fn, 1)
+```
+
+### 柯里化 Currying
+
+让所有函数只接受一个参数, 那么怎么支持两个参数
+
+```js
+const add = ({a, b} => a + b) // 用对象实现
+add({a: 1, b: 2})
+
+const add = a => b => a + b // 用闭包实现
+add(1)(2)
+```
+
+柯里化一个函数: 把多参数函数, 编程单参数函数
+
+```js
+// 题目1: 三参数函数 add(1, 2, 3) 变成 curriedAdd(1)(2)(3)
+cosnt curriedArr =
+  a =>
+    b =>
+      c =>
+        add(a, b, c)
+
+// 题目2: 对1的升级
+/**
+ * addTwo 接受两个参数
+ * addThree 接受三个参数
+ * addFour 接受四个参数
+ * 写出一个 currify 函数, 使得他们分别接受 2 3 4 次参数, 比如:
+ * currify(addTwo)(1)(2) // 3
+ * currify(addThree)(1)(2)(3) // 6
+ * currify(addFour)(1)(2)(3)(4) // 10
+ */
+const addTwo = (a, b) => a + b
+const addThree = (a, b, c) => a + b + c
+const addFour = (a, b, c, d) => a + b + c + d
+const currify = (fn, params = []) => {
+  return (arg) => {
+    const newParams = params.concat(arg)
+    if(newParams.length === fn.length) {
+      return fn(...newParams)
+    } else {
+      return currify(fn, newParams)
+    }
+  }
+}
+
+const currify = (fn, params = []) => {
+  // 支持多个参数
+  return (...args) => {
+    if(params.length + args.length === fn.length) {
+      return fn(...params, ...args)
+    } else {
+      return currify(fn, [...params, ...args])
+    }
+  }
+}
+```
+
+### 高阶函数
+
+把`函数作为参数`或者`返回值的函数`
+
+JS 内置的高阶函数
+
+- Function.prototype.bind
+- Function.prototype.apply
+- Function.prototype.call
+- Array.prototype.sort
+- Array.prototype.map
+- etc.
+
+
+```js
+// 理解 js call 才能真正理解 js
+// 推理
+const bind = Function.prototype.bind
+const f1 = function() {
+  console.log('this')
+  console.log(this)
+  console.log('arguments')
+  console.log(arguments)
+}
+
+const newF1 = f1.bind({name: 'yym'}, 1, 2, 3)
+
+// 1. 假设我认同 obj.method(a) => obj.method.call(obj, a)
+// 2. obj = f1; method = bind
+const newF1 = f1.bind.call(f1)
+
+// 3. 带入参数 a = {name: 'yym'} b,c,d = 1, 2, 3
+/**
+ * f1 
+ * this = {name: 'yym'}
+ * arguments = [1, 2, 3]
+ */
+const newF1 = f1.bind.call(f1, {name: 'yym'}, 1, 2, 3)
+
+// f1.bind === Function.prototype.bind
+// const bind = Function.prototype.bind
+// 上面两句 f1.bind === bind
+// f1.bind.call(f1, {name: 'yym'}, 1, 2, 3)
+
+/**
+ * 接受一个函数, this, 其它参数
+ * 返回一个新的函数, 会调用 fn, 并传入 this 和其它参数
+ */
+bind.call(f1, {name: 'yym'}, 1, 2, 3)
+```
+
+
+
+
 
 ### JS 原型链
 
@@ -245,15 +423,14 @@ newObj[key] = obj[key]
 
 1. 都是在客户端存储数据
 2. 有效期: local 持久化存储; session 浏览器关闭之前有效; cookie 可以设置过期时间
-3. 大小: cookie 只有4k; 其它两个存储 5M
-
+3. 大小: cookie 只有 4k; 其它两个存储 5M
 
 ## ES6+
 
 ### var let const
 
 - 都可以声明变量
-- 变量提升: var声明的变量会提升; let/const 不会
+- 变量提升: var 声明的变量会提升; let/const 不会
 - var 可以多次声明同一个变量; let/const 不行
 - var/let 声明的变量可以再次赋值; const 常量不能重新赋值
 - let/const 有块作用域; var 没有自己的作用域
@@ -261,10 +438,10 @@ newObj[key] = obj[key]
 ### 普通函数和箭头函数
 
 1. this 指向的问题
-   - 箭头函数的this是在箭头函数定义时就决定的, 而且不可修改; 指向定义时, 外层第一个普通函数this
+   - 箭头函数的 this 是在箭头函数定义时就决定的, 而且不可修改; 指向定义时, 外层第一个普通函数 this
 2. 箭头函数不能 new
 3. 箭头函数没有原型 prototype
-4. 箭头函数没有arguments
+4. 箭头函数没有 arguments
 
 ### find filter some every
 
@@ -272,7 +449,6 @@ newObj[key] = obj[key]
 - filter 返回新数组, 过滤
 - some 元素里只要有一个元素满足条件为真, 就返回 true
 - every 元素里所有元素都满足条件采薇真, 返回 true
-
 
 ### Promise
 

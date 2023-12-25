@@ -5,7 +5,7 @@ title: "手写代码"
 # aside: left
 ---
 
-## 手写 EventHub
+### 手写 EventHub
 
 ```js
 /**
@@ -173,4 +173,74 @@ for (const key in obj) {
     max = obj[key]
   }
 }
+```
+
+## 递归
+
+- 尾递归优化
+- 记忆函数
+
+```js
+// 用迭代代替递归, 尾递归
+f = (n) => f_inner(2, n, 1, 0)
+
+f_inner = (start, end, prev1, prev2) =>
+  start === end ? prev1 + prev2 : f_inner(start + 1, end, prev1 + prev2, prev1)
+```
+
+```js
+// 所有递归都可以改成循环
+f = (n) => {
+  let arr = [0, 1]
+  for (let i = 0; i <= n - 2; i++) {
+    arr[i + 2] = arr[i + 1] + arr[i]
+  }
+  return arr[arr.length - 1]
+}
+```
+
+### 阶乘
+
+```js
+/**
+ * 先递 后归
+ * 4 * factorial(3)
+ * 4 * (3 * factorial(2))
+ * 4 * (3 * (2 * factorial(1)))
+ * 4 * (3 * (2 * 1))
+ * 4 * (3 * 2)
+ * 4 * 6
+ */
+const factorial = (n) => {
+  if (n <= 1) return 1
+  return n * factorial(n - 1)
+}
+factorial(4)
+
+// 尾递归优化
+```
+
+### 斐波那契
+
+```js
+/**
+ * fibonacci(2) + fibonacci(3)
+ * (fibonacci(0) + fibonacci(1)) + (fibonacci(1) + fibonacci(2))
+ * (0 + 1) + (1 + (fibonacci(0) + fibonacci(1))
+ * 1 + (1 + (0 + 1))
+ * 3
+ */
+const fibonacci = (n) => {
+  if (n === 0) return 0
+  if (n === 1) return 1
+  return fibonacci(n - 1) + fibonacci(n - 2)
+}
+fibonacci(4)
+
+/**
+ * 当前项基于前两项
+ * f(4) = f(2, 4, 1, 0) 1, 0 是 2 的前两位
+ *        f(3, 4, 1, 1) 1, 1 是 3 的前两位
+ *        f(4, 4, 2, 1) 2, 1 是 4 的前两位
+ */
 ```
