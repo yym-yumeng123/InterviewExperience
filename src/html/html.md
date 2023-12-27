@@ -239,7 +239,7 @@ window.onresize = function() {
 ### px em rem vw vh
 
 1. `px` 像素单位和设备屏幕分辨率直接相关
-2. `em` 相对于其父元素的字体大小, 默认`1em = 16px`
+2. `em` 相对于其父元素的字体大小, 默认`1em = 16px` 一个字的宽度
 3. `rem` 相对于字体大小的 html 元素，也称为根元素
 4. `vw` viewpoint width，视窗宽度，1vw=视窗宽度的 1%
 5. `vh` viewpoint height，视窗高度，1vh=视窗高度的 1%
@@ -252,13 +252,51 @@ window.onresize = function() {
 </div>
 
 html {
-font-size: 10px; /_ 不建议设置 font-size: 62.5%; 在 IE 9-11 上有偏差，具体表现为 1rem = 9.93px。 _/
+  font-size: 10px; /_ 不建议设置 font-size: 62.5%; 在 IE 9-11 上有偏差，具体表现为 1rem = 9.93px。 _/
 }
 
 .sqaure {
-width: 5rem; /_ 50px _/
-height: 5rem; /_ 50px _/
+  width: 5rem; /_ 50px _/
+  height: 5rem; /_ 50px _/
 }
+```
+
+### 动态 REM
+
+REM: root em 根元素(html元素)的 font-size
+
+```css
+html {
+  font-size: 16px
+}
+
+div {
+  font-size: 2rem /** 1rem = 16 2rem = 32 */
+}
+```
+
+1. 响应式: 是否有设计图, 不同尺寸的设计图
+   - 0-320px 一套css
+   - 320-375px 一套css
+   - ...
+   - 百分比布局 宽度百分比好写, 高度百分比不好弄
+   - 整体缩放 rem
+     - 一切单位以宽度为基准
+
+```js
+// html font-size = 页面宽度
+
+// 1rem = html font-size = 1 page width
+const pageWidth = window.innerWidth
+document.write(`<style>html{font-size:${pageWidth}px}</style>`)
+
+// 1rem = html font-size = 1 /10 page width
+// width height margin padding 使用 rem, border 使用 px; 单位特别小, 使用 px
+const pageWidth = window.innerWidth
+document.write(`<style>html{font-size:${pageWidth / 10}px}</style>`)
+
+// 移动端
+/* <meta name="viewport" content="width=device-width, user-scalable=no"> */
 ```
 
 ### line-height 和 height 区别
@@ -333,21 +371,59 @@ vertical-align:top
 
 ### BFC (block formatting context) 块级格式化上下文
 
-> 每个渲染区域用 formatting context 表示，它决定了其子元素将如何定位，以及和其他元素的关系和相互作用
+> 浮动、绝对定位、非块盒的块容器(例如: inline-blocks table-cells)和 `overflow != visible` 的块盒会为它们的内容建立一个新的块格式上下文
 
 BFC 特性
 
-- 内部的 Box 会在垂直方向，一个接一个地放置。
+- 在一个 BFC 中, 内部的 Box 会在垂直方向，一个接一个地放置。
 - BFC 就是页面上的一个隔离的独立容器，容器里面的子元素不会影响到外面的元素。反之也如此
-- 可以解决上下 margin 合并问题
+- 同一个块级格式化上下文中的相邻块级盒之间的 `竖直margin` 会合并
+- 可以解决上下 margin 合并问题 `父子元素margin合并`
+
+BFC 功能
+
+- 父元素管住子元素 `float : 'left' | 'right'`; `display: flow-root`
+  - 父元素触发了 BFC, 子元素就只能乖乖的听话
+- 兄弟元素之间划清界限
+  - 兄弟触发 bfc
 
 触发 BFC
 
 - 根元素
-- float 值非 `none`
+- 浮动元素: float 值非 `none` 
+- 绝对定位元素: position 值为 `absolute | fixed`
 - overflow 值非 `visible`
-- position 值为 `absolute | fixed`
-- display 值为 `inline-block | flex | inline-flex`
+- display 值为 `inline-block | flex | inline-flex | table-cell`
+- `display: flow-root` 让当前元素触发 bfc
+
+
+:::tip
+从根元素开始, 就开启了`BFC`, 按照文档流排列, 子元素或者孙子元素有些布局, 可以触发自己的BFC, 因为父亲只能管儿子, 管不了孙子
+
+只有 `display: flow-root` 触发BFC 没有副作用, `浮动; overflow: hidden; 定位` 等都有自己的特性
+:::
+
+### 理解 font-size line-height
+
+下面字体的大小 `100px` 是什么的高度
+
+- 字体不同, font-size 显示的大小不同, 每个字体有一个默认的 `推荐行高`  em-square
+  - font-size 即不指字体大小, 也不指字体高度, 而是设计字体时给定的
+- line-height 指定一个内联元素真实的占地高度
+  - 字体基于基线对齐, 不同字体基线对齐方式, 会导致父元素变大
+  - 默认值 = 设计字体的给定的 normal
+- `vertical-align: top` 怎么对齐的?
+  - 不同字体留的行高不同, 导致实际占地面积不同, 顶部不同, 所以经常看着对不齐
+- 行内元素默认基线对齐, 既使看不见元素
+  - 单独一张图片下面的缝隙: 因为图片要对齐行内元素, `vertical-align: middle`
+
+```css
+span {
+  vertical-align: top;
+  font-size: 100px;
+  font-family: 宋体、微软雅黑、...
+}
+```
 
 ### 双飞翼布局
 
