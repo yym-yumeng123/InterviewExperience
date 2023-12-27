@@ -307,19 +307,18 @@ JS 内置的高阶函数
 - Array.prototype.map
 - etc.
 
-
 ```js
 // 理解 js call 才能真正理解 js
 // 推理
 const bind = Function.prototype.bind
-const f1 = function() {
-  console.log('this')
+const f1 = function () {
+  console.log("this")
   console.log(this)
-  console.log('arguments')
+  console.log("arguments")
   console.log(arguments)
 }
 
-const newF1 = f1.bind({name: 'yym'}, 1, 2, 3)
+const newF1 = f1.bind({ name: "yym" }, 1, 2, 3)
 
 // 1. 假设我认同 obj.method(a) => obj.method.call(obj, a)
 // 2. obj = f1; method = bind
@@ -327,11 +326,11 @@ const newF1 = f1.bind.call(f1)
 
 // 3. 带入参数 a = {name: 'yym'} b,c,d = 1, 2, 3
 /**
- * f1 
+ * f1
  * this = {name: 'yym'}
  * arguments = [1, 2, 3]
  */
-const newF1 = f1.bind.call(f1, {name: 'yym'}, 1, 2, 3)
+const newF1 = f1.bind.call(f1, { name: "yym" }, 1, 2, 3)
 
 // f1.bind === Function.prototype.bind
 // const bind = Function.prototype.bind
@@ -342,7 +341,7 @@ const newF1 = f1.bind.call(f1, {name: 'yym'}, 1, 2, 3)
  * 接受一个函数, this, 其它参数
  * 返回一个新的函数, 会调用 fn, 并传入 this 和其它参数
  */
-bind.call(f1, {name: 'yym'}, 1, 2, 3)
+bind.call(f1, { name: "yym" }, 1, 2, 3)
 ```
 
 ### JS 原型链
@@ -446,8 +445,165 @@ newObj[key] = obj[key]
 - some 元素里只要有一个元素满足条件为真, 就返回 true
 - every 元素里所有元素都满足条件采薇真, 返回 true
 
+### 宏任务和微任务
+
+ES6 之前: 正在执行的代码; `setTimeout(放到异步队列 (先进先出))`
+
+ES6 之后: `Promise`
+
+- MacroTask 宏任务: setTimeout
+- MicroTask 微任务: process.nextTick -> node / MutationObserver -> 浏览器 / setImmediate -> 兼容性差
+
 ### Promise
 
 是异步编程的一种解决方案, 比传统的回调函数更强大
 
-有三种状态: pending、fulfilled、rejected
+有三种状态: `pending、fulfilled、rejected`
+
+```js
+new Promise(function (reslove, reject) {})
+
+// 制造一个成功 或失败
+Promise.reslove(4) // 值为 4 的 promise
+// 制造一个失败
+Promise.reject(result)
+// 等待全部成功, 才成功
+Promise.all([Promise1, Promise2, ...PromiseN])
+// 等待第一个状态改变
+Promise.race(数组)
+```
+
+```js
+// 自己写一个 Promise.allSettled
+// 无论成功失败 都返回
+Promise.allSettled([Promise1, Promise2, ...PromiseN])
+
+// 参数是 promise, 无论 promise 成功失败, 再次返回一个 promise
+task = () => new Promise((reslove, reject) => ) // promise 不会立即执行
+x = promise => promise.then((value) => {status: 'ok', value}, (reason) => {status: 'not ok', reason})
+Promise.all([x(promise1()), x(promise2()), x(promise3())]).then(v => console.log(v))
+
+// =>
+x = promiseList => promiseList.map(
+  promise => promise.then((value) => {status: 'ok', value}, (reason) => {status: 'not ok', reason})
+)
+Promise.all([x(promise1(), promise2(), promise3())]).then(v => console.log(v))
+
+// =>
+Promise.allSettled2 = function(promiseList) {
+  return Promise.all(x(promiseList))
+}
+Promise.allSettled2([promise1(), promise2(), promise3()]).then(v => console.log(v))
+```
+
+**应用场景**
+
+1. 多次处理一个结果
+2. 串行: 同一个请求, 多次请求, 后面的请求比前面的请求返回结果快 任务串行
+   - 保证第一个请求结果出来 再返回第二个结果
+   - 把任务放进队列, 完成一个再做下一个
+3. 并行
+   - Promise.all
+   - Promise.allSettled
+4. 实际应用中, 尽量将所有异步操作进行 Promise 的封装，方便其他地方调用, 放弃以前的 callback 写法
+5. 尽量将 new Promise 的操作封装在内部，而不是在业务层去实例化
+
+**Promise 错误处理**
+
+- `Promise.then(s1, f1)`
+- `Promise.then(s1).catch(f1)`
+- 尽量通过 `catch()` 去捕获 Promise 异常，需要说明的是，一旦被 catch 捕获过的异常，将不会再往外部传递，除非在 catch 中又触发了新的异常
+- 如果 catch 里面在处理异常时，又发生了新的异常，将会继续往外冒，这个时候我们不可能无止尽的在后面添加 catch 来捕获，所以 Promise 有一个小的缺点就是最后一个 catch 的异常没办法捕获
+
+### async / await
+
+- 优点: 就像在写同步代码
+- 只能和 promise 配合, 是 `promise` 语法糖
+- 为了兼容旧代码 `await(promise)`, 所以官方在前面强制加了一个 `async`, 没有实际意义, 和 await 配合
+- 一般通过 `async await 来配合 Promise` 使用，这样可以让代码可读性更强，彻底没有"回调"的痕迹了
+
+```js
+const fn = async () => {
+  const temp = await makePromise()
+  return temp + 1
+}
+```
+
+- await 错误处理
+
+```js
+// try catch 比较丑
+let res
+try {
+  res = await axios()
+} catch (err) {
+  if (err) {
+    throw new Error()
+  }
+}
+```
+
+```js
+// 使用 catch 来捕获 错误
+
+// await 只关心成功, 失败交给 catch 捕获
+awiat axios.get().catch(error => {})
+```
+
+- await 传染性
+
+```js
+console.log(1)
+await console.log(2)
+console.log(3) // await 下面的代码 变成异步了
+// promise 同样有传染性 (同步变异步)
+// 回调没有传染性
+```
+
+```js
+// 题目:
+
+let a = 0
+let test = async () => {
+  a = a + await 10 // a+  先执行 a = 0
+  console.log(a) // 异步
+}
+test()
+
+console.log(++a) // 同步先打 1
+
+// 1
+// 10
+```
+
+```js
+// 错误写法
+async function getData() {
+  // await 不认识后面的 setTimeout，不知道何时返回
+  const data = await setTimeout(() => {
+    return;
+  }, 3000);
+
+  console.log("3 秒到了");
+}
+```
+
+```js
+// 正确写法
+async function getData() {
+  const data = await new Promise((reslove) => {
+    setTimeout(() => {
+      return;
+    }, 3000);
+  });
+
+  console.log("3 秒到了");
+}
+```
+
+:::tip
+- await 同一行后面的内容对应 Promise 主体内容，即同步执行的
+- await 下一行的内容对应 then()里面的内容，是异步执行的
+- await 同一行后面应该跟着一个 Promise 对象，如果不是，需要转换（如果是常量会自动转换）
+- async 函数的返回值还是一个 Promise 对象
+:::
