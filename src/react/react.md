@@ -275,26 +275,25 @@ const value = useContext(MyContext)
 
 在触发 onSelect 合成事件前，React 用浅对比判断选中项是否真的有变化，真有变化才会触发事件，否则不会触发
 
-3. React纯组件
+3. React 纯组件
 
 - 在 React 里，纯组件 `PureComponent` 是一个主要用于`性能优化`的独立 API：当组件的 props 和 state 没有变化时，将跳过这次渲染，直接沿用上次渲染的结果
 - 纯组件只应该作为性能优化的手段，开发者不应该将任何业务逻辑建立在到纯组件的行为上
 - `React.memo`: 第一个参数是一个组件, 返回一个作为高阶组件的纯组件, 第二个参数戳一个对比函数
-
 
 ```js
 // 纯组件接受的 props 与原组件相同。每次渲染时纯组件会把 props 记录下来
 // 下次渲染时会用新的 props 与老的 props 做浅对比，如果判断相等则跳过这次原组件的渲染
 // 注意，原组件内部不应该有 state 和 context 操作，否则就算 props 没变，原组件还是有可能因为 props 之外的原因重新渲染
 
-const MyPureComponent = React.memo(MyComponent);
+const MyPureComponent = React.memo(MyComponent)
 //    ---------------              -----------
 //           ^                          ^
 //           |                          |
 //         纯组件                       组件
 
 // compare 函数被调用时会接受 oldProps 和 newProps 两个参数，如果返回 true，则视为相等，反之则视为不等
-const MyPureComponent = React.memo(MyComponent, compare);
+const MyPureComponent = React.memo(MyComponent, compare)
 //    ---------------              -----------  -------
 //           ^                          ^          ^
 //           |                          |          |
@@ -307,14 +306,65 @@ const MyPureComponent = React.memo(MyComponent, compare);
 
 ```js
 // 数组
-const itemAdded = [...oldArray, newItem];
-const itemRemoved = oldArray.filter(item => item !== newItem);
+const itemAdded = [...oldArray, newItem]
+const itemRemoved = oldArray.filter((item) => item !== newItem)
 
 // 对象
-const propertyUpdated = { ...oldObj, property1: 'newValue' };
+const propertyUpdated = { ...oldObj, property1: "newValue" }
 
 // Map
-const keyUpdated = new Map(oldMap).set('key1', 'newValue');
+const keyUpdated = new Map(oldMap).set("key1", "newValue")
 ```
 
-### 什么是Fiber协调引擎
+### 什么是 Fiber 协调引擎
+
+### 路由原理
+
+前端路由实现起来其实很简单，本质就是`监听 URL 的变化`，然后`匹配路由规则`，显示相应的页面，并且无须刷新页面
+
+1. `Hash 模式`
+   - `www.test.com/#/ 就是 Hash URL`，当 # 后面的哈希值发生变化时，可以通过 `hashchange 事件来监听到 URL 的变化`，从而进行跳转页面，并且无论哈希值如何变化，服务端接收到的 URL 请求永远是 www.test.com
+   ```js
+   window.addEventListener("hashchange", () => {
+     // ... 具体逻辑
+   })
+   ```
+2. `History 模式`
+
+   - History 模式是 HTML5 新推出的功能，主要使用 `history.pushState` 和 `history.replaceState` 改变 URL。
+
+   ```js
+   // 新增历史记录
+   history.pushState(stateObject, title, URL)
+   // 替换当前历史记录
+   history.replaceState(stateObject, title, URL)
+
+   window.addEventListener("popstate", (e) => {
+     // e.state 就是 pushState(stateObject) 中的 stateObject
+     console.log(e.state)
+   })
+   ```
+
+3. 两种模式对比
+   - Hash 模式只可以更改 # 后面的内容，History 模式可以通过 API 设置任意的同源 URL
+   - History 模式可以通过 API 添加任意类型的数据到历史记录中，Hash 模式只能更改哈希值，也就是字符串
+   - Hash 模式无需后端配置，并且兼容性好。History 模式在用户手动输入地址或者刷新页面的时候会发起 URL 请求，后端需要配置 index.html 页面用于匹配不到静态资源的时候
+
+### MVVM
+
+- View 很简单，就是用户看到的视图
+- Model 同样很简单，一般就是本地数据和数据库中的数据
+
+1. `MVC`
+
+`MVC` 架构通常是使用控制器更新模型，视图从模型中获取数据去渲染。当用户有输入时，会通过控制器去更新模型，并且通知视图进行更新
+
+MVC 有一个巨大的缺陷就是控制器承担的责任太大了，随着项目愈加复杂，控制器中的代码会越来越臃肿，导致出现不利于维护的情况
+
+2. `MVVM`
+
+引入了 `ViewModel` 的概念。`ViewModel` 只关心数据和业务的处理，不关心 View 如何处理数据，在这种情况下，View 和 Model 都可以独立出来，任何一方改变了也不一定需要改变另一方，并且可以将一些可复用的逻辑放在一个 ViewModel 中，让多个 View 复用这个 ViewModel
+
+以 Vue 框架来举例，ViewModel 就是组件的实例, View 就是模板，Model 的话在引入 Vuex 的情况下是完全可以和组件分离的
+
+通过 ViewModel 将视图中的状态和用户的行为分离出一个抽象，这才是 MVVM 的精髓
