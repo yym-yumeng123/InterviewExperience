@@ -81,6 +81,22 @@ typeof null // "object"
 [] instanceof Array // true
 ```
 
+```js
+// 内部机制是通过判断对象的原型链中是不是能找到类型的 `prototype`
+function myInstanceof(left, right) {
+  // 首先获取类型的原型
+  let prototype = right.prototype
+  // 然后获得对象的原型
+  left = left.__proto__
+  // 然后一直循环判断对象的原型是否等于类型的原型，直到对象原型为 null，因为原型链最终为 null
+  while (true) {
+    if (left === null || left === undefined) return false
+    if (prototype === left) return true
+    left = left.__proto__
+  }
+}
+```
+
 ### void 0 和 undefined
 
 - `undefined` 是一种数据类型, 唯一值 undefined, 声明一个变量但不赋值, 就是 undefined, 可以被重新赋值
@@ -128,8 +144,10 @@ fun(100)
 ```js
 function create(fn, ...args) {
   const obj = {} // 创建空对象
+  // obj.__proto__ = fn.prototype
   Object.setPrototypeOf(obj, fn.prototype) // 空对象的原型 指向fn的原型
-  const result = fn.apply(this, args) // 空对象作为构造函数的上下文
+  // 使用apply，改变构造函数的this指向，使其指向新对象，这样，obj就可以访问到构造函数中的属性了
+  const result = fn.apply(this, args)
   return result instanceof Object ? result : obj
 }
 ```
@@ -346,7 +364,7 @@ bind.call(f1, { name: "yym" }, 1, 2, 3)
 
 ### JS 原型链
 
-- 理解原型对象: 无论什么时候,只要创建了新函数, 就会有一组特定的规则为该函数创建一个 prototype 属性, 这个属性指向函数的原型对象, 默认情况下, 所有原型对象都会自动获得一个 constructor(构造函数)属性, 这个属性是指向 prototyp 属性所在的指针
+- 理解原型对象: 无论什么时候,只要创建了新函数, 就会有一组特定的规则为该函数创建一个 prototype 属性, 这个属性指向函数的原型对象, 默认情况下, 所有原型对象都会自动获得一个 constructor(构造函数)属性, 这个属性是指向 prototype 属性所在的指针
 - 原型: 对象可以共享属性和方法
 - 实例化对象原型`__proto__`指向构造函数的`prototype`属性; `prototype`是函数才有的属性，而`__proto__`是每个对象都有的属性
 - 什么是原型链?
@@ -365,6 +383,25 @@ Person.prototype.sayName = function () {
 // p 实例化对象原型 __proto__ 指向 Person 的 prototype 属性
 var p = new Person("Hello")
 p.sayName()
+```
+
+```js
+// 组合继承
+function Person(name) {
+  this.name = name
+}
+Person.prototype.sayName = function () {
+  console.log(`${this.name}你好`)
+}
+
+function People(name) {
+  // 继承属性
+  Person.call(this, name)
+}
+People.prototype = new Person()
+
+const people = new People("yym")
+people.sayName()
 ```
 
 ### 判断变量是不是数组
@@ -398,8 +435,14 @@ const arr = [1, 2, 3]
 const arr1 = arr
 const obj = { a: 1, b: 2 }
 const obj1 = Object.assign(obj)
+const obj2 = { ...obj }
 
-// 深拷贝
+// 深拷贝 JSON
+/**
+ * 会忽略 undefined
+ * 会忽略 symbol
+ * 不能序列化函数
+ */
 const obj2 = JSON.parse(JSON.stringify(obj))
 
 // 我想要真正的值: 把源数据的每个值放到新的变量中
@@ -425,10 +468,15 @@ newObj[key] = obj[key]
 ### var let const
 
 - 都可以声明变量
-- 变量提升: var 声明的变量会提升; let/const 不会
-- var 可以多次声明同一个变量; let/const 不行
-- var/let 声明的变量可以再次赋值; const 常量不能重新赋值
-- let/const 有块作用域; var 没有自己的作用域
+- `var`
+  - 在全局作用域下声明变量会导致变量挂载在 `window` 上
+  - 声明的变量会发生提升, 函数提升优先于变量提升，函数提升会把整个函数挪到作用域顶部，变量提升只会把声明挪到作用域顶部
+- `let/const`
+  - 声明的全局变量不会被挂载到 `window` 上
+  - let/const 声明的变量不会提升
+  - 暂时性死区，我们不能在声明前就使用变量
+- `var/let` 声明的变量可以再次赋值; `const` 常量不能重新赋值
+- `let/const` 有块作用域; `var` 没有自己的作用域
 
 ### 普通函数和箭头函数
 
@@ -679,3 +727,80 @@ async function getData() {
 - await 同一行后面应该跟着一个 Promise 对象，如果不是，需要转换（如果是常量会自动转换）
 - async 函数的返回值还是一个 Promise 对象
   :::
+
+### 模块化
+
+- 解决命名冲突
+- 提高复用性
+- 提高代码可维护性
+
+1. `立即执行函数` 通过函数作用域解决了命名冲突、污染全局作用域的问题
+
+```js
+!function (globalVariable) {
+  globalVariable.test = function () {}
+  // ... 声明各种变量、函数都不会污染全局作用域
+}(globalVariable)
+```
+
+2. `Common.js`: 最早在 `node` 使用
+
+```js
+// a.js
+module.exports = {
+  a: 1,
+}
+// or
+exports.a = 1
+
+// b.js
+var module = require("./a.js")
+module.a // -> log 1
+```
+
+3. `ES Module` 是原生实现的模块化方案
+
+```js
+// 引入模块 API
+import XXX from "./a.js"
+import { XXX } from "./a.js"
+// 导出模块 API
+export function a() {}
+export default function () {}
+```
+
+### Proxy 代理
+```js
+// target: 需要添加代理的对象, handler: 用来自定义对象中的操作
+let p = new Proxy(target, handler);
+```
+
+```js
+// 自定义 set 和 get 函数的方式，在原本的逻辑中插入了我们的函数逻辑，实现了在对对象任何属性进行读写时发出通知
+let onWatch = (obj, setBind, getLogger) => {
+  let handler = {
+    get(target, property, receiver) {
+      getLogger(target, property)
+      return Reflect.get(target, property, receiver)
+    },
+    set(target, property, value, receiver) {
+      setBind(value, property)
+      return Reflect.set(target, property, value)
+    }
+  }
+  return new Proxy(obj, handler)
+}
+
+let obj = { a: 1 }
+let p = onWatch(
+  obj,
+  (v, property) => {
+    console.log(`监听到属性${property}改变为${v}`)
+  },
+  (target, property) => {
+    console.log(`'${property}' = ${target[property]}`)
+  }
+)
+p.a = 2 // 监听到属性a改变
+p.a // 'a' = 2
+```

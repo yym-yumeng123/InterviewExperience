@@ -121,6 +121,48 @@ function findCache(source) {
 }
 ```
 
+### 手写 Call
+
+- 不传入第一个参数, 那么上下文默认为 `window`
+- 改变了 `this` 指向, 让新的对象可以执行该函数, 并能接受参数
+
+```js
+Function.prototype.call = function(context) {
+  // 用户不传 context 就是 window
+  // 值为原始值(数字，字符串，布尔值)的 this 会指向该原始值的自动包装对象(用 Object() 转换）
+  context = Object(context) || window
+  // 设置 fn 为调用  call 方法
+  context.fn = this
+
+  // 执行该函数
+  cosnt args = [...argumetns].slice(1)
+  const result = context.fn(...args)
+  // 删除
+  delete context.fn
+  return result 
+}
+```
+
+### 手写 Apply
+
+- apply() 方法调用一个具有给定 this 值的函数，以及作为一个数组提供的参数。
+
+```js
+Function.prototype.Apply = function(context, arr) {
+  context = Object(context) || window
+  context.fn = this
+  // 判断参数是否为数组
+  let result
+  if(Array.isArray(arr)) {
+    result = content.fn(...arr)
+  } else {
+    result = context.fn()
+  }
+  delete context.fn
+  return result
+}
+```
+
 ### 手写 Bind
 
 - bind 位于 Function.prototype 上
