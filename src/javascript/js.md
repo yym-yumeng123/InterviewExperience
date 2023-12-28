@@ -447,18 +447,83 @@ newObj[key] = obj[key]
 
 ### 宏任务和微任务
 
-ES6 之前: 正在执行的代码; `setTimeout(放到异步队列 (先进先出))`
+**Eventloop (事件循环)**
 
-ES6 之后: `Promise`
+Eventloop: 状态变化的过程, 有哪几个阶段? 最后一个阶段再回到第一个阶段, 事件循环
 
-- MacroTask 宏任务: setTimeout
-- MicroTask 微任务: process.nextTick -> node / MutationObserver -> 浏览器 / setImmediate -> 兼容性差
+1. timers
+2. I/O callbacks
+3. prepare
+4. poll
+5. check
+6. close cb
+
+我们只需了解
+
+1. timer
+   - timers 阶段会执行 `setTimeout 和 setInterval` 回调，并且是由 poll 阶段控制的
+2. poll
+   - 回到 timer 阶段执行回调
+   - 执行 I/O 回调
+3. check
+   - check 阶段执行 `setImmediate`
+
+`Node.js 的 EventLoop` 的几个阶段: `timers poll check`, 顺序是: timers -> poll -> check -> timers
+
+```js
+/**
+ * 开启 eventloop
+ * 执行 js
+ *
+ * 1. setTimeout 放入事件循环 timers 阶段
+ * 2. poll 等待, 不到 1s 不执行 setTimeout
+ * 3. check 阶段 也有个队列: setImmediate(fn)
+ * 4. poll 等待看到 check 阶段有, 执行, 然后继续等待 1s 去执行 timers 阶段的 定时器
+ * 5. 循环查看, 事件循环
+ *
+ * 大部分时间停留在 poll 阶段等待, setImmediate(fn)在check阶段, 先执行
+ * */
+setTimeout(fn, 1000)
+setImmediate(fn2)
+process.nextTick(fn3) // 当前阶段执行 马上执行
+// fn3 fn2 fn
+```
+
+**宏任务、微任务**
+
+- MacroTask 宏任务: setTimeout 放到 timers 阶段; setImmediate -> check 阶段
+- MicroTask 微任务: process.nextTick -> 当前后面立即执行; `new Promise(fn)` 马上执行; await 把后面的转化为 promise.then()
+
+```js
+async function async1() {
+  console.log(1)
+  await async2() // async2.then(() => {console.log(2)}) 后面的都是 then 里面的
+  console.log(2)
+}
+
+async function async2() {
+  console.log(3)
+}
+
+async1()
+
+new Promise(function (resolve) {
+  console.log(4)
+  resolve() // 决定执行哪个函数
+}).then(function () {
+  console.log(5)
+})
+
+// 1 3 4 2 5
+```
 
 ### Promise
 
 是异步编程的一种解决方案, 比传统的回调函数更强大
 
 有三种状态: `pending、fulfilled、rejected`
+
+一旦从等待状态变成为其他状态就永远不能更改状态了
 
 ```js
 new Promise(function (reslove, reject) {})
@@ -523,6 +588,12 @@ Promise.allSettled2([promise1(), promise2(), promise3()]).then(v => console.log(
 - 一般通过 `async await 来配合 Promise` 使用，这样可以让代码可读性更强，彻底没有"回调"的痕迹了
 
 ```js
+// 一个函数如果加上 async ，那么该函数就会返回一个 Promise
+async function test() {
+  return "1"
+}
+console.log(test()) // -> Promise {<resolved>: "1"}
+
 const fn = async () => {
   const temp = await makePromise()
   return temp + 1
@@ -565,7 +636,7 @@ console.log(3) // await 下面的代码 变成异步了
 
 let a = 0
 let test = async () => {
-  a = a + await 10 // a+  先执行 a = 0
+  a = a + (await 10) // a+  先执行 a = 0
   console.log(a) // 异步
 }
 test()
@@ -581,10 +652,10 @@ console.log(++a) // 同步先打 1
 async function getData() {
   // await 不认识后面的 setTimeout，不知道何时返回
   const data = await setTimeout(() => {
-    return;
-  }, 3000);
+    return
+  }, 3000)
 
-  console.log("3 秒到了");
+  console.log("3 秒到了")
 }
 ```
 
@@ -593,17 +664,18 @@ async function getData() {
 async function getData() {
   const data = await new Promise((reslove) => {
     setTimeout(() => {
-      return;
-    }, 3000);
-  });
+      return
+    }, 3000)
+  })
 
-  console.log("3 秒到了");
+  console.log("3 秒到了")
 }
 ```
 
 :::tip
+
 - await 同一行后面的内容对应 Promise 主体内容，即同步执行的
 - await 下一行的内容对应 then()里面的内容，是异步执行的
 - await 同一行后面应该跟着一个 Promise 对象，如果不是，需要转换（如果是常量会自动转换）
 - async 函数的返回值还是一个 Promise 对象
-:::
+  :::
