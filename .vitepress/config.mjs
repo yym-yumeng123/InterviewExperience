@@ -43,7 +43,21 @@ export default defineConfig({
           {text: "树" ,link: "/datastructure/tree"},
           {text: "leetcode算法", link: "/datastructure/leetcode"}
         ]
+      },
+      {
+        text: "Golang基础",
+        items: [
+          {text: "fmt env file json testing包", link: '/go/package'},
+          {text: "golang 网络编程", link: '/go/http'}
+        ]
+      },
+      {
+        text: "Docker",
+        items: [
+          {text: "Docker", link: '/docker/docker'},
+        ]
       }
+
     ],
 
     socialLinks: [
