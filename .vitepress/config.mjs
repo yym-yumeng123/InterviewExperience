@@ -41,6 +41,7 @@ export default defineConfig({
           {text: "递归_排序_二分查找" ,link: "/datastructure/sort_serach_rescue"},
           {text: "跳表_散列表_哈希算法" ,link: "/datastructure/skip_hashtable"},
           {text: "树" ,link: "/datastructure/tree"},
+          {text: "字符串匹配基础" ,link: "/datastructure/strings"},
           {text: "leetcode算法", link: "/datastructure/leetcode"}
         ]
       },
