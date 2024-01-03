@@ -80,6 +80,7 @@ docker run  -i -t ubuntu /bin/bash
 # 7b1a6ab2e44d: Pull complete
 # Status: Downloaded newer image for ubuntu:latest
 ```
+
 ### 查看容器列表
 
 ```shell
@@ -283,7 +284,6 @@ docker inspect --help
 docker inspect 容器id
 ```
 
-
 ### 进入当前正在运行的容器
 
 ```shell
@@ -301,9 +301,6 @@ docker cp 容器id:容器内路径 目的地主机路径
 
 docker cp 4172a23b:/home/test.html /home
 ```
-
-
-## 实战
 
 ### 安装 nginx
 
@@ -325,4 +322,90 @@ docker exec -it nginx01 /bin/bash # 进入容器
 # --rm 停止容器就删
 docker run -it --rm tomcat:9.0
 docker run -it --rm -p 8888:8080 tomcat:9.0
+```
+
+## 容器数据卷
+
+### 什么是容器数据卷
+
+日常开发使用容器的过程中,可能会存储一些`数据`, 如果数据都放在容器中, 我们不小心把容器删除了, 数据就会丢失! 我们需要数据可以持久化, 怎么做?
+
+容器之间有一个数据共享的技术, Docker 容器中产生的数据, 同步到本地, 这就是`卷技术, 目录的挂载`, 将我们容器的目录, 挂载到宿主机上
+
+数据卷是为了容器的持久化和同步操作, 容器间也是可以数据共享的
+
+### 使用数据卷
+
+```shell
+# 指定路径挂载
+docker -v 主机目录:容器内目录
+
+# 查看容器的信息
+docker inspect 容器
+
+#"Mounts": [
+#    {
+#        "Type": "volume",
+#        "Name": "381eb0d22b4b8f17ec9582dc501866f8c4dd7882b5fabd738a75935b16f34d09",
+         # 宿主机地址
+#        "Source": "/var/lib/docker/volumes/381eb0d22b4b8f17ec9582dc501866f8c4dd7882b5fabd738a75935b16f34d09/_data",
+         # docker 容器内地址
+#        "Destination": "/var/lib/mysql",
+#        "Driver": "local",
+#        "Mode": "",
+#        "RW": true,
+#        "Propagation": ""
+#    }
+#],
+
+# create 创建一个卷
+# inspect 卷的信息
+# ls 卷的列表
+# prune
+# rm
+docker volume --help
+```
+
+### 安装 mysql
+
+```shell
+# 查找镜像
+docker search mysql
+
+# 运行容器
+# -d 后台运行
+# -p 端口映射
+# -v 数据挂载
+# -e mysql 配置
+# --name 容器名字
+docker run -d -p 3310:3306 -v /c:/Users/18026/Desktop/mysql/data:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=123456 --name yym mysql
+```
+
+### 具名和匿名挂载
+
+```shell
+# 匿名挂载 -v 只写了容器内的路径, 没有写容器外的路径
+docker -v 容器内路径 
+# DRIVER: local  VOLUME NAME:   6cb7245b9d35fc99f56c423c8694d46a3b9ee73331559fbb71149c697203226e
+
+
+# 具名挂载 可以方便的找到我们的卷
+# 名字
+docker -v 名字:/etc/nginx nginx # local     gems
+# 目录
+docker -v /名字:/etc/nginx nginx
+
+
+docker volume ls # 查看卷的列表
+docker volume inspect 名字
+```
+
+```md
+通过 -v 容器内路径: ro rw 改变读写权限
+
+ro readonly 只读
+rw readwrite 可读可写
+
+docker -v /名字:/etc/nginx:ro nginx
+docker -v /名字:/etc/nginx:rw nginx
 ```
