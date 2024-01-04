@@ -409,3 +409,118 @@ rw readwrite 可读可写
 docker -v /名字:/etc/nginx:ro nginx
 docker -v /名字:/etc/nginx:rw nginx
 ```
+
+## Dockerfile
+
+Dockerfile 就是用来构建 docker 镜像的构建文件
+
+- 创建一个 Dockerfile 文件
+- `docker build` 构建成为一个镜像
+- 成功后, 启动自己的容器 `docker run`
+- `docker push` 发布镜像
+
+
+```dockerfile
+# 通过这个脚本生成镜像, 镜像是一层一层的, 
+
+# 指令 FROM VOLUME CMD 全大写
+# 后面跟参数
+FROM centos
+
+# 匿名挂载, 通过 docker inspect containerId 可以查看宿主机地址的
+# 如果没有构建, 可以手动镜像挂载 -v 卷名:容器内路径
+VOLUME ["volume01", "volume02"]
+
+CMD echo "--end--"
+CMD /bin/bash
+```
+
+```shell
+# . 当前目录
+# -t --tag 'name:tag' format 自己定义的镜像名和版本
+# -f --file Default is 'PATH/Dockerfile
+docker build -f dockerfile -t /yym/centos:1.0 .
+```
+
+### Dockerfile 构建过程
+
+1. 每个保留关键字(指令)都是大写字母
+2. 执行从上到下
+3. `#` 表示注释
+4. 每个指令都会创建提交一个新的镜像层, 并提交
+
+```Dockerfile
+# 指令
+
+# 基础镜像 (镜像的妈妈是谁)
+FROM
+# 维护镜像的作者信息 姓名 + 邮箱
+MAINTAINER
+# 镜像构建时运行的命令
+RUN
+# 用来将构建环境下的文件和目录复制到镜像中.
+ADD
+# 用来从镜像创建一个新容器时, 在容器内部设置一个工作目录,ENTRYPOINT CMD 指定的程序会在这个目录下运行
+WORKDIR
+# 用来向基于镜像创建的容器添加卷 挂载主机目录 (存放行李的地方)
+VOLUME
+# 指定对外的端口 (-p)
+EXPOSE
+# 指定容器启动要运行的命令, 只有最后一个 CMD 会生效
+CMD
+# 效果和 CMD 类似, 可以追加命令
+ENTRYPOINT
+# 类似 ADD, 将我们的文件拷贝到镜像中
+COPY
+# 构建的时候设置环境变量
+ENV
+# 为Docker镜像添加元数据, 以键值对的形式展现
+LABEL
+```
+
+```Dockerfile
+# docker run 可以覆盖
+CMD ["/bin/true"]
+CMD ["/bin/bash", "-l"]
+
+docker run -it xxx /bin/ps
+
+# 提供的命令不容易在启动容器时覆盖
+# docker run 命令行中指定的参数会被当做参数传递给 ENTRYPOINT 指令中指定的命令
+ENTRYPOINT ["usr/sbin/nginx"]
+
+WORKDIR /var/log
+
+ENV RVM_PATH /home/rvm
+
+# 指定一个或多个卷
+VOLUME ["/opt/project", "data"]
+
+# 安装一个应用程序时:  源文件 目的文件夹 复制
+ADD software.lic /opt/appliction/software.lic
+
+LABEL version="1.0"
+LABEL version="1.0" type="Data"
+```
+
+### 数据卷容器
+
+- `--volumes-from` 实现容器间的数据共享和重用, 有种拷贝的概念
+- 容器之间配置信息的传递, 数据卷容器的生命周期一直持续到没有容器使用为止
+- 但一旦持久化到了本地, 本地的数据是不会删除的
+
+```shell
+# 父容器就是数据卷容器
+docker run -it --name 父容器 我的镜像名
+
+docker run -it --name 第二个容器 --volumes-from 父容器 我的镜像名
+
+docker run -it --name 第三个容器 --volumes-from 父容器 我的镜像名
+```
+
+```shell
+# 多个 mysql 实现数据共享, 两个容器数据同步
+docker run -d -p 3310:3306 -v /var/lib/mysql -e MYSQL_ROOT_PASSWORD=123456 --name yym mysql
+
+docker run -d -p 3310:3306 -v /var/lib/mysql -e MYSQL_ROOT_PASSWORD=123456 --name yym --volumes-from mysql
+```
