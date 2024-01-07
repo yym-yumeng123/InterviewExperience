@@ -35,6 +35,12 @@ export default defineConfig({
         ]
       },
       {
+        text: 'Node',
+        items: [
+          { text: 'Node', link: '/Node/node' },
+        ]
+      },
+      {
         text: '数据结构',
         items: [
           {text: "数组_链表_栈_队列" ,link: "/datastructure/data"},
