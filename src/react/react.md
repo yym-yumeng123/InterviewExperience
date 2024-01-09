@@ -2,6 +2,125 @@
 outline: deep
 ---
 
+### SPA MPA
+
+- `SPA` 单页面应用
+  - 避免页面间切换阻断用户的体验
+  - 所有的前端内容都是单次加载, 根据用户的操作, 动态组装前端资源, 局部更新
+  - 组成: 一个主页面 + 多个页面片段
+- `MPA` 多页面应用
+  - 每个页面都是独立的页面, 访问单独的页面, 都需要重新加载前端资源, 整个页面刷新
+  - 组成: 多个主页面
+
+1. SPA 的实现
+
+- hash
+- history
+
+```js
+// hash
+class Router {
+  constructor() {
+    this.routes = {}
+    this.currentUrl = ""
+
+    window.addEventListener("load", this.refresh)
+    window.addEventListener("hashchange", this.refresh)
+  }
+  route(path, cb) {
+    this.routes[path] = cb
+  }
+  push(path) {
+    this.routes[path] && this.routes[path]()
+  }
+}
+
+window.minRouter = new Router()
+minRouter.route("/", () => console.log("1111"))
+
+minRouter.push("/")
+```
+
+```js
+// H5 history API
+// history.pushstate 记录浏览器的历史变化
+// history.replaceState 修改浏览器的历史中当前记录
+// history.popState history.change 触发
+class Router {
+  constructor() {
+    this.routes = {}
+    this.listerPopState()
+  }
+
+  init(path) {
+    history.replace({ path: path }, null, path)
+    this.routes[path] && this.routes[path]()
+  }
+
+  route(path, cb) {
+    this.routes[path] = cb
+  }
+
+  push(path) {
+    history.pushState({ path }, null, path)
+    this.routes[path] && this.routes[path]()
+  }
+
+  listerPopState() {
+    window.addEventListener("popstate", (e) => {
+      const path = e.state.path
+      this.routes[path] && this.routes[path]()
+    })
+  }
+}
+
+window.minRouter = new Router()
+minRouter.route("/", () => console.log("1111"))
+
+minRouter.push("/")
+```
+
+2. SPA 的 SEO
+
+- SSR: 组件页面通过服务端下发 `html`
+- 静态化
+  - 动态页面抓取 -> 保存为静态页面, 存储在硬盘
+  - Web 服务器 URLRewrite 外部请求的静态地址 -> 实际的动态页面地址
+- nginx 针对爬虫的处理
+  - node server 完整解析 HTML user-agent
+
+3. SPA 首屏加载 优化方案
+
+- 减少入口文件的体积
+  - 路由懒加载 不同组件拆分成不同的代码模块
+- 静态资源本地缓存
+  - localStorage
+  - HTTP 缓存 cache-control Etag
+  - service worker
+- UI 按需加载
+- 避免组件重复打包
+- 图片资源压缩
+- Gzip
+
+```js
+// 计算首屏加载时间
+document.addEvenetListener("DOMContentLoad", (e) => {})
+
+performance.getEntriesByName("first-contentful-paint")[0].startTime
+{
+  duration: 0
+  entryType: "paint"
+  name: "first-contentful-paint"
+  startTime: 788.9000000059605
+}
+
+// 网络原因
+// 资源文件过大
+// 资源是否重复发送请求
+```
+
+### React 的理解
+
 ### JSX: 声明式语法唐
 
 - JSX 直接利用了 JS 语句, JS 表达式能做的, JSX 都能做
