@@ -24,12 +24,34 @@ title: "JavaScript"
 
 ### JS 数据类型
 
-- 基本类型: `string number boolean undefined null symbol bigint`
+- 原始类型: `string number boolean undefined null symbol bigint`
   - `BigInt`: 这是一种可以表示任意大的整数的数据类型。BigInt 类型的数值在其末尾加 n
   - `null`: 这是一个表示无值或无对象的特殊值。它只有一个值，即 null
   - `undefined`: 表示未定义或未赋值的值。它只有一个值，即 undefined
   - `Symbol`: 这是一种唯一且不可变的数据类型，经常用作对象属性的键。
-- 引用类型: `object`
+  - `number`: 是浮点类型的
+- 对象类型: `object`
+
+原始类型存储的是值, 没有函数可以调用; 对象类型存储的是地址(指针)
+
+```js
+function test(person) {
+  person.age = 26
+  person = {
+    name: "yyy",
+    age: 30,
+  }
+
+  return person
+}
+const p1 = {
+  name: "yck",
+  age: 25,
+}
+const p2 = test(p1)
+console.log(p1) // {name: 'yck', age: 26}
+console.log(p2) // {name: 'yyy', age: 30}
+```
 
 ### 为什么 `0.1 + 0.2 != 0.3`
 
@@ -60,7 +82,23 @@ JS 所采用的`IEEE 754`是二进制浮点数的算术标准, 这个标准里�
 ### == 和 ===
 
 - `==` 比较的是值, 类型会隐式转换, `别用这个, 一直使用全等`
+  1. 首先判断两者类型是否相同, 相同就比大小
+  2. 类型不同, 进行类型转换
+  3. 先判断是否在对比 null 和 undefiend, 是的话就返回 true
+  4. 判断两者类型是否为 string 和 number, 是的就将字符串转换为 number
+  5. 判断其中一方是否为 boolean, 是的话把 boolean 转换为 number, 在判断
+  6. 判断其中一方是否为 object 且另一方为 string、number 或者 symbol，是的话就会把 object 转为原始类型再进行判断
 - `===` 比较的值和类型都相等
+
+```js
+/**
+ * 1. [] == false
+ * 2. [] == 0
+ * 3. "" == 0
+ * 4. 0 == 0
+ */
+console.log([] == ![]) // true
+```
 
 ### typeof instanceof 的作用和区别
 
@@ -95,6 +133,47 @@ function myInstanceof(left, right) {
     left = left.__proto__
   }
 }
+```
+
+### 类型转换
+
+![](类型转换.png)
+
+1. 转 Boolean
+
+在条件判断时，除了 `undefined， null， false， NaN， ''， 0， -0`，其他所有值都转为 true，包括所有对象。
+
+2. 对象转原始类型
+
+对象在转换类型的时候，会调用内置的 [[ToPrimitive]] 函数，对于该函数来说，算法逻辑一般来说如下
+
+- 如果已经是原始类型了，那就不需要转换了
+- 调用 x.valueOf()，如果转换为基础类型，就返回转换的值
+- 调用 x.toString()，如果转换为基础类型，就返回转换的值
+- 如果都没有返回原始类型，就会报错
+
+3. 四则运算符
+
+加法运算符不同于其他几个运算符，它有以下几个特点
+
+- 运算中其中一方为字符串，那么就会把另一方也转换为字符串
+- 如果一方不是字符串或者数字，那么会将它转换为数字或者字符串
+
+```js
+// 触发特点一，所以将数字 1 转换为字符串，得到结果 '11'
+1 + "1" // '11'
+// 触发特点二，所以将 true 转为数字 1
+true + true // 2
+// 触发特点二，所以将数组通过 toString 转为字符串 1,2,3，得到结果 41,2,3
+4 + [1, 2, 3] // "41,2,3"
+
+// + 'b' 等于 NaN，所以结果为 "aNaN"
+"a" + +"b" // -> "aNaN"
+
+// 除了加法的运算符来说，只要其中一方是数字，那么另一方就会被转为数字
+4 * "3" // 12
+4 * [] // 0
+4 * [1, 2] // NaN
 ```
 
 ### void 0 和 undefined
@@ -136,7 +215,7 @@ fun(100)
 
 ### new 操作符做了什么
 
-1. 创建了一个空对象
+1. 新生成一个空对象
 2. 将空对象的原型, 指向于构造函数的原型
 3. 将空对象作为构造函数的上下文(改变 this 指向)
 4. 对构造函数有返回值的处理判断
@@ -189,6 +268,8 @@ function f1(x) return x + a
 
 ### JS 闭包
 
+函数 A 内部有一个函数 B，函数 B 可以访问到函数 A 中的变量，那么函数 B 就是闭包。
+
 如果在函数里面可以访问外面的变量, 那么 `这个函数 + 这些变量 = 闭包`
 
 - 闭包是指有权访问另外一个函数作用域中的变量的函数; 闭包让开发者可以`从内部函数访问外部函数的作用域`
@@ -225,6 +306,7 @@ for(var i = 0; i < list.length; i++) {
 - this 是参数, 就是一个隐式参数而已, 是 call 的第一个参数
 - new 重新设计了 this
 - 箭头函数不接受 this
+  - 箭头函数其实是没有 this 的，箭头函数中的 this 只取决包裹箭头函数的第一个普通函数的 this
 - 调用了才能确定 this, 不调用就不知道 this 指向
 
 ```js
@@ -435,13 +517,14 @@ const arr = [1, 2, 3]
 const arr1 = arr
 const obj = { a: 1, b: 2 }
 const obj1 = Object.assign(obj)
-const obj2 = { ...obj }
+const obj2 = { ...obj } // 展开运算符
 
 // 深拷贝 JSON
 /**
  * 会忽略 undefined
  * 会忽略 symbol
  * 不能序列化函数
+ * 不能解决循环引用的对象
  */
 const obj2 = JSON.parse(JSON.stringify(obj))
 
@@ -492,10 +575,70 @@ newObj[key] = obj[key]
 - filter 返回新数组, 过滤
 - some 元素里只要有一个元素满足条件为真, 就返回 true
 - every 元素里所有元素都满足条件采薇真, 返回 true
+- map 作用是生成一个新数组，遍历原数组，将每个元素拿出来做一些变换然后放入到新的数组中
+- reduce 来说，它接受两个参数，分别是回调函数和初始值
 
-### 宏任务和微任务
+```js
+/**
+ * parseInt('1', 0) -> 1
+ * parseInt('2', 1) -> NaN
+ * parseInt('3', 2) -> NaN
+ */
+;["1", "2", "3"].map(parseInt)
+```
 
-**Eventloop (事件循环)**
+### Event Loop
+
+#### 进程和线程
+
+- 进程描述了 CPU 在运行指令及加载和保存上下文所需的时间，放在应用上来说就代表了一个程序
+- 线程是进程中的更小单位，描述了执行一段指令所需的时间。
+
+把这些概念拿到浏览器中来说，当你打开一个 Tab 页时，其实就是创建了一个进程，一个进程中可以有多个线程，比如渲染线程、JS 引擎线程、HTTP 请求线程等等。当你发起一个请求时，其实就是创建了一个线程，当请求结束后，该线程可能就会被销毁。
+
+#### 执行栈
+
+可以把执行栈认为是一个存储函数调用的栈结构，遵循先进后出的原则。
+
+#### 浏览器中的 Event Loop
+
+当遇到异步的代码时，会被挂起并在需要执行的时候加入到 Task（有多种 Task） 队列中。一旦执行栈为空，Event Loop 就会从 Task 队列中拿出需要执行的代码并放入执行栈中执行，所以本质上来说 JS 中的异步还是同步行为
+
+![](./浏览器Event.png)
+
+不同的任务源会被分配到不同的 Task 队列中，任务源可以分为 微任务（microtask） 和 宏任务（macrotask）。在 ES6 规范中，microtask 称为 jobs，macrotask 称为 task。
+
+```js
+console.log("script start") // 1
+
+async function async1() {
+  await async2()
+  console.log("async1 end") //5
+}
+async function async2() {
+  console.log("async2 end") // 2
+}
+async1()
+
+setTimeout(function () {
+  console.log("setTimeout") // 8
+}, 0)
+
+new Promise((resolve) => {
+  console.log("Promise") // 3
+  resolve()
+})
+  .then(function () {
+    console.log("promise1") // 6
+  })
+  .then(function () {
+    console.log("promise2") // 7
+  })
+
+console.log("script end") // 4
+```
+
+#### Node 中的 Event Loop
 
 Eventloop: 状态变化的过程, 有哪几个阶段? 最后一个阶段再回到第一个阶段, 事件循环
 
@@ -533,6 +676,8 @@ Eventloop: 状态变化的过程, 有哪几个阶段? 最后一个阶段再回�
  * */
 setTimeout(fn, 1000)
 setImmediate(fn2)
+
+// process.nextTick，这个函数其实是独立于 Event Loop 之外的，它有一个自己的队列，当每个阶段完成后，如果存在 nextTick 队列，就会清空队列中的所有回调函数，并且优先于其他 microtask 执行。
 process.nextTick(fn3) // 当前阶段执行 马上执行
 // fn3 fn2 fn
 ```
@@ -681,9 +826,10 @@ console.log(3) // await 下面的代码 变成异步了
 
 ```js
 // 题目:
-
+// 首先函数 test 先执行，在执行到 await 10 之前变量 a 还是 0，因为 await 内部实现了 generator ，generator 会保留堆栈中东西，所以这时候 a = 0 被保存了下来
 let a = 0
 let test = async () => {
+  // 因为 await 是异步操作，后来的表达式不返回 Promise 的话，就会包装成 Promise.reslove(返回值)，然后会去执行函数外的同步代码
   a = a + (await 10) // a+  先执行 a = 0
   console.log(a) // 异步
 }
@@ -737,10 +883,10 @@ async function getData() {
 1. `立即执行函数` 通过函数作用域解决了命名冲突、污染全局作用域的问题
 
 ```js
-!function (globalVariable) {
+!(function (globalVariable) {
   globalVariable.test = function () {}
   // ... 声明各种变量、函数都不会污染全局作用域
-}(globalVariable)
+})(globalVariable)
 ```
 
 2. `Common.js`: 最早在 `node` 使用
@@ -770,9 +916,12 @@ export default function () {}
 ```
 
 ### Proxy 代理
+
+Proxy 是 ES6 中新增的功能，它可以用来自定义对象中的操作
+
 ```js
-// target: 需要添加代理的对象, handler: 用来自定义对象中的操作
-let p = new Proxy(target, handler);
+// target: 需要添加代理的对象, handler: 用来自定义对象中的操作, 比如可以用来自定义 set 或者 get 函数。
+let p = new Proxy(target, handler)
 ```
 
 ```js
@@ -786,7 +935,7 @@ let onWatch = (obj, setBind, getLogger) => {
     set(target, property, value, receiver) {
       setBind(value, property)
       return Reflect.set(target, property, value)
-    }
+    },
   }
   return new Proxy(obj, handler)
 }
@@ -803,4 +952,25 @@ let p = onWatch(
 )
 p.a = 2 // 监听到属性a改变
 p.a // 'a' = 2
+```
+
+### setTimeout、setInterval、requestAnimationFrame 各有什么特点？
+
+`setTimeout` 允许我们将函数推迟到一段时间间隔之后再执行
+
+`setInterval`，其实这个函数作用和 setTimeout 基本一致，setInterval 允许我们重复运行一个函数，从一段时间间隔之后开始运行，之后以该时间间隔连续重复运行该函数。
+
+`requestAnimationFrame` 自带函数节流功能，基本可以保证在 16.6 毫秒内只执行一次（不掉帧的情况下），并且该函数的延时效果是精确的，没有其他定时器时间不准的问题，当然你也可以通过该函数来实现 setTimeout。
+
+`requestAnimationFrame`和 js 中的 setTimeout 定时器函数基本一致，不过 setTimeout 可以自由设置间隔时间，而 `requestAnimationFrame`的间隔时间是由浏览器自身决定的，大约是 17 毫秒左右
+
+```js
+let timerId = setTimeout(...);
+clearTimeout(timerId);
+
+// 嵌套的 setTimeout 相较于 setInterval 能够更精确地设置两次执行之间的延时
+let timerId = setTimeout(function tick() {
+  alert('tick');
+  timerId = setTimeout(tick, 2000); // (*)
+}, 2000);
 ```

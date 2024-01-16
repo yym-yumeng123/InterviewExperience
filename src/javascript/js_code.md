@@ -128,10 +128,12 @@ function findCache(source) {
 
 ```js
 Function.prototype.call = function(context) {
+  if (typeof this !== 'function') {
+    throw new TypeError('Error')
+  }
   // 用户不传 context 就是 window
-  // 值为原始值(数字，字符串，布尔值)的 this 会指向该原始值的自动包装对象(用 Object() 转换）
-  context = Object(context) || window
-  // 设置 fn 为调用  call 方法
+  context = context || window
+  // context 创建一个 fn 属性，并将值设置为需要调用的函数
   context.fn = this
 
   // 执行该函数
@@ -149,12 +151,15 @@ Function.prototype.call = function(context) {
 
 ```js
 Function.prototype.Apply = function(context, arr) {
-  context = Object(context) || window
+  if (typeof this !== 'function') {
+    throw new TypeError('Error')
+  }
+  context = context || window
   context.fn = this
   // 判断参数是否为数组
   let result
   if(Array.isArray(arr)) {
-    result = content.fn(...arr)
+    result = context.fn(...arr)
   } else {
     result = context.fn()
   }
@@ -182,11 +187,11 @@ function bind(asThis, ...args) {
 
 // 支持 new
 function new_bind(asThis, ...args) {
-  // this 就是函数
-  const fn = this
   if (typeof fn !== "function") {
     throw new TypeError("bind must function")
   }
+  // this 就是函数
+  const fn = this
   function resultFn(...innerargs) {
     // new fn 和 普通的调用区别是 {}.__proto__ === fn.prototype
     return fn.call(

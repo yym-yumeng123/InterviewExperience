@@ -121,6 +121,165 @@ performance.getEntriesByName("first-contentful-paint")[0].startTime
 
 ### React 的理解
 
+- React 是一个用于构建用户界面（UI）的 JavaScript 库 (没有第三方依赖, 比较灵活)
+- JSX 语法
+- 单向数据流
+- 虚拟 DOM (高效)
+- 声明式编程
+- 一切都是组件, 可以是一个函数或者一个类
+- React 帮助你把它们组合成可重用、可嵌套的 组件
+
+### React v18.0
+
+#### Concurrent
+
+Concurrent 翻译为并发, 并不是 API 之类的新特性, 但很重要, 是 React18 大部分新特性的视线基础, 包括 `Suspense、transitions、流式服务端渲染等`
+
+Concurrent 最主要的特点是 `渲染是可中断的`, update 开始了也可以中断, 晚点再继续, 中间也可能被遗弃掉
+
+`可中断`: 对于 React 来说, 任务可能很多, 需要区分优先级, 高优先级的任务来了, 就可以先中断低优先级的任务, 对于复杂项目来说, 任务可中断这件事情很重要, 基础还是 `fiber`, 本身是链表结构, 想指向别的地方价格属性就行了
+
+`被遗弃`: 在 Concurrent 模式下, 有些 update 可能会被遗弃掉
+
+`状态复用`: 还支持状态复用, 有时用户想要看上一次页面状态, 可选的, React 正在用 `Offscreen` 组件来实现这个功能, 还没完成, 源码在做了
+
+#### `reacr-dom/client` 中的 `createRoot`
+
+```js
+const root = createRoot(docuemnt.getElementById("root"))
+const App = () => {}
+root.render(<App />)
+```
+
+#### 自动批处理 Automatic Batching
+
+React 会将之前未做处理的类似异步任务进行一个合并以减少渲染
+
+批量更新: 将多次 state 更新合并到一次 render
+
+- React18 之前: React 仅在浏览器事件处理期间才会做批量更新; 对于 Promise，setTimeout、等基础异步任务中是不会执行的
+- React18 版本中: 对于基于 `createRoot` 创建出来的组件，其下的所有状态都会应用批量更新。
+
+```js
+// 关闭批处理更新
+import { flushSync } from "react-dom"
+
+function handleClick() {
+  flushSync(() => {
+    setCounter((c) => c + 1)
+  })
+  flushSync(() => {
+    setFlag((f) => !f)
+  })
+}
+```
+
+#### Suspense
+
+可以等待目标 UI 加载，并且可以直接指定一个加载的界面（像是个 spinner），让它在用户等待的时候显示。
+
+```js
+<Suspense fallback={<Spinner />}>
+  <Comments />
+</Suspense>
+```
+
+#### 错误处理
+
+```js
+export default class ErrorBoundaryPage extends React.Component {
+  state = { hasError: false, error: null }
+  static getDerivedStateFromError(error) {
+    return {
+      hasError: true,
+      error,
+    }
+  }
+  render() {
+    if (this.state.hasError) {
+      return this.props.fallback
+    }
+    return this.props.children
+  }
+}
+```
+
+#### transition
+
+React 把 update 更新分为两种:
+
+- `Urgent updates` 紧急更新，指直接交互，通常指的用户交互。如点击、输入等。这种更新一旦不及时，用户就会觉得哪里不对。
+- `Transition updates` 过渡更新，如 UI 从一个视图向另一个视图的更新。通常这种更新用户并不着急看到。
+
+```js
+/**
+ * startTransition可以用在任何你想更新的时候。但是从实际来说，以下是两种典型适用场景
+ * 1. 渲染慢：如果你有很多没那么着急的内容要渲染更新。
+ * 2. 网络慢：如果你的更新需要花较多时间从服务端获取。这个时候也可以再结合Suspense
+ */
+import { useTransition, useDeferredValue } from "react"
+
+export default function Button({ refresh }) {
+  const [isPending, startTransition] = useTransition()
+
+  return (
+    <div className='border'>
+      <h3>Button</h3>
+      <button
+        onClick={() => {
+          startTransition(() => {
+            refresh()
+          })
+        }}
+        disabled={isPending}
+      >
+        点击刷新数据
+      </button> {isPending ? <div>loading...</div> : null}
+    </div>
+  )
+}
+```
+
+#### useId
+
+用于产生一个在服务端与 Web 端都稳定且唯一的 ID, 也支持加前缀, 多用于 ssr 的环境下
+
+```js
+const newHookAPi = () => {
+  const id = useId()
+  // 不支持css选择器
+  return <div id={id}>Hello</div>
+}
+```
+
+#### useSyncExternalStore
+
+用于外部数据的读取和订阅, 可应用 Concurrent
+
+```js
+const state = useSyncExternalStore(subscribe, getSnapshot[, getServeSnapshot])
+```
+
+#### useInsertionEffect
+
+函数签名同 `useEffect`, 但是它在所有 DOM 变更前同步触发, 主要用于`css-in-js`库, 往 DOM 中动态注入`<style> 或svg的 <defs>`, 由于执行时机, 不可读取 refs
+
+```js
+function useCSS(rule) {
+  useInsertionEffect(() => {
+    if (!isInserted.has(rule)) {
+      isInserted.add(rule)
+      document.head.appendChild(getStyleForRule(rule))
+    }
+  })
+  return rule
+}
+function Component() {
+  let className = useCSS(rule)
+  return <div className={className} />
+}
+```
+
 ### JSX: 声明式语法唐
 
 - JSX 直接利用了 JS 语句, JS 表达式能做的, JSX 都能做
@@ -148,7 +307,11 @@ React 没有组件树, 只有元素树
 
 ### 虚拟 DOM
 
-虚拟 DOM (Virtual DOM), 是相对于 `HTML DOM` 更轻量的 JS 模型,
+虚拟 DOM (Virtual DOM), 是相对于 `HTML DOM` 更轻量的 JS 模型
+
+```js
+const vDOM = React.createElement("h1", { className: "hClass" }, "hello world")
+```
 
 操作真实 DOM 是比较耗费资源的, 大量调用 DOM API 绘制页面，页面很容易就卡
 
@@ -183,8 +346,8 @@ React 引入了 key 这个特殊属性，当有子元素列表中的元素有这
 - `useContext`
 - `useRef`
 - 需要性能优化, 减少不必要渲染 `useMemo useCallback`
-  - useMemo 的功能是为工厂函数返回一个记忆化的计算值, 在两次渲染之前, 只有依赖值数组中的依赖值有变化时, 该 Hook 才会调用工厂函数重新计算, 将新的返回值记忆化并返回给组件
-  - useCallback 会把作为第一个参数的回调函数返回给组件, 只要第二个参数依赖值数组的依赖项不改变, 就会保证一直返回同一个回调函数, 而不是新建一个函数, 保证了回调函数的闭包也是不变的, 相反, 依赖项改变, useCallbak 才会更新回调函数及其闭包
+  - `useMemo` 的功能是为工厂函数返回一个记忆化的计算值, 在两次渲染之前, 只有依赖值数组中的依赖值有变化时, 该 Hook 才会调用工厂函数重新计算, 将新的返回值记忆化并返回给组件
+  - `useCallback` 会把作为第一个参数的回调函数返回给组件, 只要第二个参数依赖值数组的依赖项不改变, 就会保证一直返回同一个回调函数, 而不是新建一个函数, 保证了回调函数的闭包也是不变的, 相反, 依赖项改变, useCallbak 才会更新回调函数及其闭包
 - 处理复杂 state: `useReducer`
 - 需要封装命令, 对外提供命令式接口 `useRef + useImperativeHandle`
 - 用户操作相关, 受到异步渲染拖累卡顿时, useDeferredvalue useTransition
@@ -339,6 +502,15 @@ const KanbanNewCard = ({ onSubmit }) => {
 }
 ```
 
+不受控组件就是不受我们控制的组件 `ref`
+
+```jsx
+const com = () => {
+  const inputRef = useRef(null)
+  return <input type='text' ref={inputRef} />
+}
+```
+
 ### 单向数据流
 
 **React 数据流包含哪些数据**
@@ -436,6 +608,8 @@ const keyUpdated = new Map(oldMap).set("key1", "newValue")
 ```
 
 ### 什么是 Fiber 协调引擎
+
+
 
 ### 路由原理
 

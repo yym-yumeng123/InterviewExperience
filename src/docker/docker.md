@@ -385,7 +385,7 @@ docker run -d -p 3310:3306 -v /c:/Users/18026/Desktop/mysql/data:/var/lib/mysql 
 
 ```shell
 # 匿名挂载 -v 只写了容器内的路径, 没有写容器外的路径
-docker -v 容器内路径 
+docker -v 容器内路径
 # DRIVER: local  VOLUME NAME:   6cb7245b9d35fc99f56c423c8694d46a3b9ee73331559fbb71149c697203226e
 
 
@@ -419,9 +419,8 @@ Dockerfile 就是用来构建 docker 镜像的构建文件
 - 成功后, 启动自己的容器 `docker run`
 - `docker push` 发布镜像
 
-
 ```dockerfile
-# 通过这个脚本生成镜像, 镜像是一层一层的, 
+# 通过这个脚本生成镜像, 镜像是一层一层的,
 
 # 指令 FROM VOLUME CMD 全大写
 # 后面跟参数
