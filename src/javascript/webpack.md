@@ -1,3 +1,7 @@
+---
+outline: deep
+---
+
 ## 为什么需要构建工具
 
 - 转换 ES6 语法
@@ -202,4 +206,125 @@ HTML 和 JS 内联, html-webpack-plugin 解析语法使用的是`<%='code'%>`
 plugins: [
   new HTMLInlineCSSWebpackPlugin(),
 ],
+```
+
+## Webpack 性能优化
+
+### 优化 Loader
+
+对于 Loader 来说，影响打包效率首当其冲必属 Babel 了。因为 Babel 会将代码转为字符串生成 AST，然后对 AST 继续进行转变最后再生成新的代码，项目越大，转换代码越多，效率就越低。当然了，我们是有办法优化的。
+
+1. 优化 Loader 的文件搜索范围
+
+```js
+module.exports = {
+  module: {
+    rules: [
+      {
+        // js 文件才使用 babel
+        test: /\.js$/,
+        loader: "babel-loader",
+        // 只在 src 文件夹下查找
+        include: [resolve("src")],
+        // 不会去查找的路径
+        exclude: /node_modules/,
+      },
+    ],
+  },
+}
+```
+
+### HappyPack
+
+受限于 Node 是单线程运行的，所以 Webpack 在打包的过程中也是单线程的，特别是在执行 Loader 的时候，长时间编译的任务很多，这样就会导致等待的情况
+
+`HappyPack 可以将 Loader 的同步执行转换为并行`的，这样就能充分利用系统资源来加快打包效率了
+
+```js
+module: {
+  loaders: [
+    {
+      test: /\.js$/,
+      include: [resolve('src')],
+      exclude: /node_modules/,
+      // id 后面的内容对应下面
+      loader: 'happypack/loader?id=happybabel'
+    }
+  ]
+},
+plugins: [
+  new HappyPack({
+    id: 'happybabel',
+    loaders: ['babel-loader?cacheDirectory'],
+    // 开启 4 个线程
+    threads: 4
+  })
+]
+```
+
+### DllPlugin
+
+`DllPlugin 可以将特定的类库提前打包然后引入`。这种方式可以极大的减少打包类库的次数，只有当类库更新版本才有需要重新打包，并且也实现了将公共代码抽离成单独文件的优化方案。
+
+```js
+// 单独配置在一个文件中
+// webpack.dll.conf.js
+const path = require("path")
+const webpack = require("webpack")
+module.exports = {
+  entry: {
+    // 想统一打包的类库
+    vendor: ["react"],
+  },
+  output: {
+    path: path.join(__dirname, "dist"),
+    filename: "[name].dll.js",
+    library: "[name]-[hash]",
+  },
+  plugins: [
+    new webpack.DllPlugin({
+      // name 必须和 output.library 一致
+      name: "[name]-[hash]",
+      // 该属性需要与 DllReferencePlugin 中一致
+      context: __dirname,
+      path: path.join(__dirname, "dist", "[name]-manifest.json"),
+    }),
+  ],
+}
+
+// webpack.conf.js
+module.exports = {
+  // ...省略其他配置
+  plugins: [
+    new webpack.DllReferencePlugin({
+      context: __dirname,
+      // manifest 就是之前打包出来的 json 文件
+      manifest: require('./dist/vendor-manifest.json'),
+    })
+  ]
+}
+```
+
+### 按需加载
+
+可以使用按需加载，将每个路由页面单独打包为一个文件
+
+- 把整个网站划分成一个个小功能，再按照每个功能的相关程度把它们分成几类。
+- 把每一类合并为一个 Chunk，按需加载对应的 Chunk
+- 对于用户首次打开你的网站时需要看到的画面所对应的功能，不要对它们做按需加载，而是放到执行入口所在的 Chunk 中，以降低用户能感知的网页加载时间。
+- 对于个别依赖大量代码的功能点，例如依赖 Chart.js 去画图表、依赖 flv.js 去播放视频的功能点，可再对其进行按需加载。
+
+### Scope Hoisting
+
+分析出模块之间的依赖关系，尽可能的把打散的模块合并到一个函数中去，但前提是不能造成代码冗余。 因此只有那些被引用了一次的模块才能被合并
+
+```js
+const ModuleConcatenationPlugin = require('webpack/lib/optimize/ModuleConcatenationPlugin');
+
+module.exports = {
+  plugins: [
+    // 开启 Scope Hoisting
+    new ModuleConcatenationPlugin(),
+  ],
+};
 ```

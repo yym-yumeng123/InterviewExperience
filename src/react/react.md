@@ -645,6 +645,8 @@ const keyUpdated = new Map(oldMap).set("key1", "newValue")
 
 ### MVVM
 
+不管是 React 还是 Vue，它们都不是 MVVM 框架，只是有借鉴 MVVM 的思路
+
 - View 很简单，就是用户看到的视图
 - Model 同样很简单，一般就是本地数据和数据库中的数据
 
