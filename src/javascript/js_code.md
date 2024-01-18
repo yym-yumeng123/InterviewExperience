@@ -13,6 +13,8 @@ title: "手写代码"
 
 ### 手写节流
 
+节流即`每隔一段时间就执行一次`，实现原理为设置一个定时器，约定 xx 毫秒后执行事件，如果时间到了，那么执行函数并重置定时器，和防抖的区别在于，防抖每次触发事件都重置定时器，而节流在定时器到时间后再清空定时器
+
 考虑一个场景，滚动事件中会发起网络请求，但是我们并不希望用户在滚动过程中一直发起请求，而是隔一段时间发起一次，对于这种情况我们就可以使用节流。
 
 ```js
@@ -39,9 +41,32 @@ setInterval(
   }, 500),
   1
 )
+
+// 每隔一段时间就执行一次
+function throttle(fn, wait) {
+  let timer = null
+  let flag = false
+
+  return function (...args) {
+    if (!flag) {
+      fn.apply(this, args)
+      flag = true
+    } else {
+      if (!timer) {
+        timer = setTimeout(() => {
+          fn.apply(this, args)
+          flag = false
+          timer = null
+        }, wait)
+      }
+    }
+  }
+}
 ```
 
 ### 手写防抖
+
+防抖，即`短时间内大量触发同一事件，只会执行一次函数`，实现原理为设置一个定时器，约定在 xx 毫秒后再触发事件处理，每次触发事件都会重新设置计时器，直到 xx 毫秒内无第二次操作，防抖常用于搜索框/滚动条的监听事件处理，如果不做防抖，每输入一个字/滚动屏幕，都会触发事件处理，造成性能浪费。
 
 考虑一个场景，有一个按钮点击会触发网络请求，但是我们并不希望每次点击都发起网络请求，而是当用户点击按钮一段时间后没有再次点击的情况才去发起网络请求，对于这种情况我们就可以使用防抖。
 
@@ -50,7 +75,7 @@ setInterval(
 // wait是等待时间
 const debounce = (func, wait = 50) => {
   // 缓存一个定时器id
-  let timer = 0
+  let timer = null
   // 这里返回的函数是每次用户实际调用的防抖函数
   // 如果已经设定过定时器了就清空上一次的定时器
   // 开始一个新的定时器，延迟执行用户传入的方法
@@ -185,7 +210,7 @@ Function.prototype.call = function(context) {
   }
   // 用户不传 context 就是 window
   context = context || window
-  // context 创建一个 fn 属性，并将值设置为需要调用的函数
+  // 将this绑定到context[fn]上，即this指向调用函数所在对象
   context.fn = this
 
   // 执行该函数
@@ -519,6 +544,35 @@ arr.forEach((item, index) => {
 })
 ```
 
+### 多维数组拍平
+
+```js
+function flatten1(arr) {
+  return arr.reduce((pre, cur) => {
+    return pre.concat(Array.isArray(cur) ? flatten1(cur) : cur)
+  }, [])
+}
+
+function flatten2(arr) {
+  let newArr = []
+  for (const item of arr) {
+    newArr = newArr.concat(Array.isArray(item) ? flatten2(item) : item)
+  }
+  return newArr
+}
+
+function flatten3(arr) {
+  while (arr.some(Array.isArray)) arr = [].concat(...arr)
+  return arr
+}
+
+const arr = [1, [2, 3, 4], [5, [6, [7, [8]]]]]
+
+console.log(flatten1(arr))
+console.log(flatten2(arr))
+console.log(flatten3(arr))
+```
+
 ## 字符串
 
 ### 一个字符串中出现次数最多的字符, 统计次数
@@ -609,4 +663,76 @@ fibonacci(4)
  *        f(3, 4, 1, 1) 1, 1 是 3 的前两位
  *        f(4, 4, 2, 1) 2, 1 是 4 的前两位
  */
+```
+
+## 获取 js 数据类型
+
+```js
+function getType(target) {
+  return Object.prototype.toString
+    .call(target)
+    .replace(/\[object (.*?)\]/, "$1")
+    .toLowerCase()
+}
+
+console.log(getType()) // undefined
+console.log(getType(null)) // null
+console.log(getType(1)) // number
+console.log(getType("baozou")) // string
+console.log(getType(true)) // boolean
+console.log(getType(Symbol("baozou"))) // symbol
+console.log(getType({})) // object
+console.log(getType([])) // array
+```
+
+## 二分查找
+
+```js
+function binarySearch(arr, target) {
+  let i = 0,
+    j = arr.length - 1
+
+  while (i <= j) {
+    const midIndex = (i + j) >> 1
+    const midValue = arr[midIndex]
+
+    if (target === midValue) {
+      return midIndex
+    } else if (target < midValue) {
+      j = midIndex - 1
+    } else {
+      i = midIndex + 1
+    }
+  }
+
+  return -1
+}
+
+console.log(binarySearch([-1, 0, 3, 5, 9, 12], 9)) // 4
+console.log(binarySearch([-1, 0, 3, 5, 9, 12], 1)) // -1
+```
+
+## 根据 name 获取 url 上的 search
+
+```js
+function getQueryByName(name) {
+  const regExp = new RegExp(`[?&]${name}=([^&]*)(&|$)`)
+  const match = location.search.match(regExp)
+  return match ? decodeURIComponent(match[1]) : null
+}
+
+function getQueryByName1(name) {
+  const searchParams = new URLSearchParams(location.search)
+  return searchParams.get(name)
+}
+
+//https://www.baidu.com/?name=%E6%9A%B4%E8%B5%B0&sex=%E7%94%B7
+
+console.log(getQueryByName("name")) // 暴走
+console.log(getQueryByName("sex")) // 男
+console.log(getQueryByName1("name")) // 暴走
+console.log(getQueryByName1("sex")) // 男
+
+console.log(getQueryByName("age")) // null
+console.log(getQueryByName1("age")) // null
 ```

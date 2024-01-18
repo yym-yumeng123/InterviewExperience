@@ -1,11 +1,272 @@
 ---
 outline: deep
 title: "JavaScript"
-# sidebar: false 左边侧边栏
-# aside: left
 ---
 
 ## JavaScript
+
+### 词法作用域
+
+作用域是指**程序源代码中定义变量的区域**。作用域规定了如何查找变量，也就是确定当前执行代码对变量的访问权限。JavaScript 采用词法作用域(lexical scoping)，也就是静态作用域。
+
+函数的作用域在函数定义的时候就决定了
+
+```js
+var value = 1
+
+function foo() {
+  console.log(value)
+}
+
+function bar() {
+  var value = 2
+  foo()
+}
+
+bar() // 1
+```
+
+### 执行上下文栈
+
+当 JavaScript 执行一段可执行代码(executable code)时，会创建对应的执行上下文(execution context)
+
+对于每个执行上下文，都有三个重要属性：
+
+- 变量对象(Variable object，VO)
+- 作用域链(Scope chain)
+- this
+
+#### 变量对象
+
+变量对象是与执行上下文相关的数据作用域，存储了在上下文中定义的变量和函数声明
+
+#### 作用域链
+
+当查找变量的时候，会先从当前上下文的变量对象中查找，如果没有找到，就会从父级(词法层面上的父级)执行上下文的变量对象中查找，一直找到全局上下文的变量对象，也就是全局对象。这样由多个执行上下文的变量对象构成的链表就叫做作用域链
+
+#### 函数创建
+
+函数有一个内部属性 [[scope]]，当函数创建的时候，就会保存所有父变量对象到其中，可以理解 [[scope]] 就是所有父变量对象的层级链，但是注意：[[scope]] 并不代表完整的作用域链！
+
+```js
+function foo() {
+    function bar() {
+        ...
+    }
+}
+```
+
+函数创建时，各自的[[scope]]为：
+
+```js
+foo.[[scope]] = [
+  globalContext.VO
+];
+
+bar.[[scope]] = [
+    fooContext.AO,
+    globalContext.VO
+];
+```
+
+#### 函数激活
+
+当函数激活时，进入函数上下文，创建 VO/AO 后，就会将活动对象添加到作用链的前端。
+
+这时候执行上下文的作用域链，我们命名为 Scope：
+
+```js
+Scope = [AO].concat([[Scope]])
+```
+
+#### 例子
+
+```js
+var scope = "global scope"
+function checkscope() {
+  var scope2 = "local scope"
+  return scope2
+}
+checkscope()
+```
+
+执行过程如下：
+
+1. checkscope 函数被创建，保存作用域链到内部属性[[scope]]
+
+```js
+checkscope.[[scope]] = [
+    globalContext.VO
+];
+```
+
+2. 执行 checkscope 函数，创建 checkscope 函数执行上下文，checkscope 函数执行上下文被压入执行上下文栈
+
+```js
+ECStack = [checkscopeContext, globalContext]
+```
+
+3. checkscope 函数并不立刻执行，开始做准备工作，第一步：复制函数[[scope]]属性创建作用域链
+
+```js
+checkscopeContext = {
+    Scope: checkscope.[[scope]],
+}
+```
+
+4. 第二步：用 arguments 创建活动对象，随后初始化活动对象，加入形参、函数声明、变量声明
+
+```js
+checkscopeContext = {
+    AO: {
+        arguments: {
+            length: 0
+        },
+        scope2: undefined
+    }，
+    Scope: checkscope.[[scope]],
+}
+```
+
+5. 第三步：将活动对象压入 checkscope 作用域链顶端
+
+```js
+checkscopeContext = {
+  AO: {
+    arguments: {
+      length: 0,
+    },
+    scope2: undefined,
+  },
+  Scope: [AO, [[Scope]]],
+}
+```
+
+6. 准备工作做完，开始执行函数，随着函数的执行，修改 AO 的属性值
+
+```js
+checkscopeContext = {
+  AO: {
+    arguments: {
+      length: 0,
+    },
+    scope2: "local scope",
+  },
+  Scope: [AO, [[Scope]]],
+}
+```
+
+7. 查找到 scope2 的值，返回后函数执行完毕，函数上下文从执行上下文栈中弹出
+
+```js
+ECStack = [globalContext]
+```
+
+#### 执行上下文
+
+```js
+var scope = "global scope"
+function checkscope() {
+  var scope = "local scope"
+  function f() {
+    return scope
+  }
+  return f()
+}
+checkscope()
+```
+
+执行过程如下：
+
+1. 执行全局代码，创建全局执行上下文，全局上下文被压入执行上下文栈
+
+```js
+ECStack = [globalContext]
+```
+
+2. 全局上下文初始化
+
+```js
+globalContext = {
+  VO: [global],
+  Scope: [globalContext.VO],
+  this: globalContext.VO,
+}
+```
+
+3. 初始化的同时，checkscope 函数被创建，保存作用域链到函数的内部属性[[scope]]
+
+```js
+checkscope.[[scope]] = [
+  globalContext.VO
+];
+```
+
+4. 执行 checkscope 函数，创建 checkscope 函数执行上下文，checkscope 函数执行上下文被压入执行上下文栈
+
+```js
+ECStack = [checkscopeContext, globalContext]
+```
+
+5. checkscope 函数执行上下文初始化：
+   1. 复制函数 [[scope]] 属性创建作用域链，
+   2. 用 arguments 创建活动对象，
+   3. 初始化活动对象，即加入形参、函数声明、变量声明，
+   4. 将活动对象压入 checkscope 作用域链顶端。
+
+同时 f 函数被创建，保存作用域链到 f 函数的内部属性[[scope]]
+
+```js
+checkscopeContext = {
+  AO: {
+    arguments: {
+      length: 0
+    },
+    scope: undefined,
+    f: reference to function f(){}
+},
+  Scope: [AO, globalContext.VO],
+    this: undefined
+}
+```
+
+6. 执行 f 函数，创建 f 函数执行上下文，f 函数执行上下文被压入执行上下文栈
+
+```js
+ECStack = [fContext, checkscopeContext, globalContext]
+```
+
+7. f 函数执行上下文初始化, 以下跟第 4 步相同：
+   1. 复制函数 [[scope]] 属性创建作用域链
+   2. 用 arguments 创建活动对象
+   3. 初始化活动对象，即加入形参、函数声明、变量声明
+   4. 将活动对象压入 f 作用域链顶端
+
+```js
+fContext = {
+  AO: {
+    arguments: {
+      length: 0,
+    },
+  },
+  Scope: [AO, checkscopeContext.AO, globalContext.VO],
+  this: undefined,
+}
+```
+
+8. f 函数执行，沿着作用域链查找 scope 值，返回 scope 值
+
+9. f 函数执行完毕，f 函数上下文从执行上下文栈中弹出
+
+```js
+ECStack = [checkscopeContext, globalContext]
+```
+
+10. checkscope 函数执行完毕，checkscope 执行上下文从执行上下文栈中弹出
+
+```js
+ECStack = [globalContext]
+```
 
 ### 异步加载 JS
 
@@ -468,7 +729,61 @@ p.sayName()
 ```
 
 ```js
-// 组合继承
+/**
+ * 原型继承: 子类的原型对象指向父类实例，当子类实例找不到对应的属性和方法时，就会往它的原型对象，也就是父类实例上找，从而实现对父类的属性和方法的继承
+ * 缺点:
+ * 1. 所有Child实例原型都指向同一个Parent实例, 因此对某个Child实例的父类引用类型变量修改会影响所有的Child实例
+ * 2. 创建子类实例时无法向父类构造传参, 即没有实现super()的功能
+ */
+function Parent() {
+  this.name = "yym"
+}
+Parent.prototype.getName = function () {
+  return this.name
+}
+
+function Child() {}
+
+// 子类原型对象指向父类实例, 这样一来在Child实例中找不到的属性和方法就会到原型对象(父类实例)上寻找
+Child.prototype = new Parent()
+Child.prototype.constructor = Child
+
+const child = new Child()
+child.name
+child.getName()
+```
+
+```js
+/**
+ * 构造函数继承: 构造函数继承，即在子类的构造函数中执行父类的构造函数，让父类的构造函数把成员属性和方法都挂到子类的this上去，这样既能避免实例之间共享一个原型实例，又能向父类构造方法传参
+ * 缺点: 继承不到父类原型上的属性和方法
+ */
+
+function Parent(name) {
+  this.name = [name]
+}
+Parent.prototype.getName = function () {
+  return this.name
+}
+
+function Child() {
+  Parent.call(this, "yym") // // 执行父类构造方法并绑定子类的this, 使得父类中的属性能够赋到子类的this上
+}
+
+//测试
+const child1 = new Child()
+const child2 = new Child()
+child1.name[0] = "foo"
+console.log(child1.name) // ['foo']
+console.log(child2.name) // ['zhangsan']
+child2.getName() // 报错,找不到getName(), 构造函数继承的方式继承不到父类原型上的属性和方法
+```
+
+```js
+/**
+ * 组合继承: 综合上面两种优势
+ * 缺点: 创建子类实例都执行了两次构造函数(Parent.call()和new Parent())，虽然这并不影响对父类的继承，但子类创建实例时，原型中会存在两份相同的属性和方法
+ */
 function Person(name) {
   this.name = name
 }
@@ -480,10 +795,91 @@ function People(name) {
   // 继承属性
   Person.call(this, name)
 }
+// 原型链继承
 People.prototype = new Person()
+People.prototype.construtor = People
 
 const people = new People("yym")
 people.sayName()
+```
+
+```js
+/**
+ * 寄生式组合继承: 为了解决构造函数被执行两次的问题, 将指向父类实例改为指向父类原型, 减去一次构造函数的执行
+ */
+function Parent(name) {
+  this.name = [name]
+}
+Parent.prototype.getName = function () {
+  return this.name
+}
+function Child() {
+  // 构造函数继承
+  Parent.call(this, "zhangsan")
+}
+Child.prototype = Object.create(Parent.prototype) //将`指向父类实例`改为`指向父类原型`
+Child.prototype.construtor = Child
+
+//测试
+const child1 = new Child()
+const child2 = new Child()
+child1.name[0] = "foo"
+console.log(child1.name) // ['foo']
+console.log(child2.name) // ['zhangsan']
+child2.getName() // ['zhangsan']
+```
+
+### target 和 currentTarget
+
+- `e.target`：**触发**事件的元素
+- `e.currentTarget`：**绑定**事件的元素
+
+```html
+<div id="a">
+  <div id="b">
+    <div id="c">
+      <div id="d">哈哈哈哈哈</div>
+    </div>
+  </div>
+</div>
+```
+
+```js
+a.addEventListener('click', (e) => {
+  const {
+    target,
+    currentTarget
+  } = e
+  console.log(`target是${target.id}`)
+  console.log(`currentTarget是${currentTarget.id}`)
+})
+b.addEventListener('click', (e) => {
+  ...
+})
+c.addEventListener('click', (e) => {
+  ...
+})
+d.addEventListener('click', (e) => {
+  ...
+})
+```
+
+addEventListener 第三个参数为 false，表示冒泡：
+
+```js
+target是d currentTarget是d
+target是d currentTarget是c
+target是d currentTarget是b
+target是d currentTarget是a
+```
+
+为 true，表示捕获：
+
+```js
+target是d currentTarget是a
+target是d currentTarget是b
+target是d currentTarget是c
+target是d currentTarget是d
 ```
 
 ### 判断变量是不是数组

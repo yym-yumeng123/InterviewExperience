@@ -7,11 +7,21 @@ title: "HTML/CSS"
 
 ## HTML 知识点
 
+### doctype的作用是什么？
+
+声明文档类型，告知浏览器用什么文档标准解析这个文档：
+
+- 怪异模式：浏览器使用自己的模式解析文档，不加doctype时默认为怪异模式
+- 标准模式：浏览器以W3C的标准解析文档
+
+
 ### HTML 的 meta 标签
 
 ```md
 <!-- meta 元数据不会显示在客户端，但是会被浏览器解析 -->
 <head>
+  <!-- 定义HTML文档的字符集 -->
+  <meta charset="UTF-8" >
   <!-- 定义web页面描述 -->
   <meta name="description" content="我是meta">
   <!-- 定义文档关键词，用于搜索引擎 -->
@@ -37,7 +47,15 @@ title: "HTML/CSS"
       minimum-scale=1, 
       maximum-scale=1,
       target-densitydpi=device-dpi"
-  > 
+  >
+
+  <!-- http-equiv：可用于模拟http请求头，可设置过期时间、缓存、刷新 -->
+  <!-- expires，指定缓存过期时间 -->
+  <meta http-equiv="expires" content="Wed, 20 Jun 2019 22:33:00 GMT">
+  <!-- 30秒后缓存过期 -->
+  <meta http-equiv="expires" content="30">
+  <!-- 禁止浏览器从本地计算机的缓存中访问页面内容 -->
+  <meta http-equiv="Pragma" content="no-cache">
 </head>
 ```
 
@@ -62,6 +80,20 @@ title: "HTML/CSS"
 1. `link` 标签作为 HTML 元素，不存在兼容性问题; `@import`是 CSS2.1 才有的语法，故只可在 IE5+ 才能识别
 2. `link` 标签引入的 CSS 被同时加载; `@import` 引入的 CSS 在页面加载完毕后被加载
 3. JS 可以操作 DOM, 插入 `link`; 无法操作 `@import`
+
+### href和src有什么区别
+
+`href（hyperReference)` 即超文本引用：当浏览器遇到href时，会并行的地下载资源，不会阻塞页面解析，例如我们使用`<link>`引入CSS，浏览器会并行地下载CSS而不阻塞页面解析. 因此我们在引入CSS时建议使用`<link>`而不是`@import`
+
+```html
+<link href="style.css" rel="stylesheet" />
+```
+
+`src (resource)` 即资源，当浏览器遇到src时，会暂停页面解析，直到该资源下载或执行完毕，这也是script标签之所以放底部的原因
+
+```html
+<script src="script.js"></script>
+```
 
 ### img 标签 alt 和 title 属性的区别
 
@@ -486,3 +518,60 @@ span {
 - 使用`link`标签将样式表放在文档`head`中。
 - 将 JS 放在底部
   - 脚本会阻塞后面内容的呈现
+
+
+### offset、scroll、client
+
+offsetHeight = 内容高度 + padding + border
+
+clientheight = 内容高度 + padding
+
+scrollHeight = 内容实际尺寸 + padding
+
+```html
+<style>
+  .box1 {
+    width: 100px;
+    height: 100px;
+    padding: 20px;
+    margin: 30px;
+    border: 5px solid yellow;
+    background-color: #ccc;
+  }
+
+  .box2 {
+    width: 100px;
+    height: 100px;
+    padding: 20px;
+    margin: 30px;
+    border: 5px solid yellow;
+    background-color: #ccc;
+  }
+
+  .box3 {
+    width: 100px;
+    height: 100px;
+    padding: 20px;
+    margin: 30px;
+    border: 5px solid yellow;
+    background-color: #ccc;
+    overflow: auto;
+  }
+</style>
+
+<body>
+  <div class="box1">盒子1</div>
+  <div class="box2">盒子2</div>
+  <div class="box3">
+    <div style="height: 300px;">盒子3</div>
+  </div>
+</body>
+<script>
+  const box1 = document.getElementsByClassName("box1")[0];
+  const box2 = document.getElementsByClassName("box2")[0];
+  const box3 = document.getElementsByClassName("box3")[0];
+  console.info("盒子1的offsetHeight", box1.offsetHeight); // 150
+  console.info("盒子2的clientHeight", box2.clientHeight); // 140
+  console.info("盒子3的scrollHeight", box3.scrollHeight); // 340
+</script>
+```
