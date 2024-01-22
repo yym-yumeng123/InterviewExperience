@@ -30,6 +30,7 @@ export default defineConfig({
           { text: '浏览器相关', link: '/client/client' },
           { text: 'JavaScript', link: '/javascript/js' },
           { text: 'JavaScript手写代码', link: '/javascript/js_code' },
+          { text: 'TypeScript', link: 'typescript/ts' },
           { text: 'Webpack', link: '/javascript/webpack' },
           {text: 'React', link: "react/react"}
         ]
