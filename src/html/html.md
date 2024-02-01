@@ -7,13 +7,12 @@ title: "HTML/CSS"
 
 ## HTML 知识点
 
-### doctype的作用是什么？
+### doctype 的作用是什么？
 
 声明文档类型，告知浏览器用什么文档标准解析这个文档：
 
-- 怪异模式：浏览器使用自己的模式解析文档，不加doctype时默认为怪异模式
-- 标准模式：浏览器以W3C的标准解析文档
-
+- 怪异模式：浏览器使用自己的模式解析文档，不加 doctype 时默认为怪异模式
+- 标准模式：浏览器以 W3C 的标准解析文档
 
 ### HTML 的 meta 标签
 
@@ -28,10 +27,6 @@ title: "HTML/CSS"
   <meta name="keywords" content="HTML,CSS,XML,JavaScript">
   <!-- 定义作者 -->
   <meta name="author" content="张三">
-  <!-- 声明文档使用的字符编码 -->
-  <meta charset="UTF-8">
-  <!-- 每 30s 刷新页面 -->
-  <meta http-equiv="refresh" content="30">
   <!-- width: viewport 的宽度 -->
   <!-- height: viewport 的高度  -->
   <!-- user-scalable: 是否允许缩放  -->
@@ -50,6 +45,8 @@ title: "HTML/CSS"
   >
 
   <!-- http-equiv：可用于模拟http请求头，可设置过期时间、缓存、刷新 -->
+  <!-- 每 30s 刷新页面 -->
+  <meta http-equiv="refresh" content="30">
   <!-- expires，指定缓存过期时间 -->
   <meta http-equiv="expires" content="Wed, 20 Jun 2019 22:33:00 GMT">
   <!-- 30秒后缓存过期 -->
@@ -81,15 +78,15 @@ title: "HTML/CSS"
 2. `link` 标签引入的 CSS 被同时加载; `@import` 引入的 CSS 在页面加载完毕后被加载
 3. JS 可以操作 DOM, 插入 `link`; 无法操作 `@import`
 
-### href和src有什么区别
+### href 和 src 有什么区别
 
-`href（hyperReference)` 即超文本引用：当浏览器遇到href时，会并行的地下载资源，不会阻塞页面解析，例如我们使用`<link>`引入CSS，浏览器会并行地下载CSS而不阻塞页面解析. 因此我们在引入CSS时建议使用`<link>`而不是`@import`
+`href（hyperReference)` 即超文本引用：当浏览器遇到 href 时，会并行的地下载资源，不会阻塞页面解析，例如我们使用`<link>`引入 CSS，浏览器会并行地下载 CSS 而不阻塞页面解析. 因此我们在引入 CSS 时建议使用`<link>`而不是`@import`
 
 ```html
 <link href="style.css" rel="stylesheet" />
 ```
 
-`src (resource)` 即资源，当浏览器遇到src时，会暂停页面解析，直到该资源下载或执行完毕，这也是script标签之所以放底部的原因
+`src (resource)` 即资源，当浏览器遇到 src 时，会暂停页面解析，直到该资源下载或执行完毕，这也是 script 标签之所以放底部的原因
 
 ```html
 <script src="script.js"></script>
@@ -179,7 +176,7 @@ div {
 <span>联系方式</span>
 ```
 
-### 1比1 div
+### 1 比 1 div
 
 ```css
 .one {
@@ -191,7 +188,7 @@ div {
 
 ### 堆叠上下文
 
-满足某种条件的div或某种元素, 堆叠上下文
+满足某种条件的 div 或某种元素, 堆叠上下文
 
 - 根元素(html)
 - z-index != auto 的绝对/相对定位
@@ -208,7 +205,6 @@ div 不是平面的,三维概念, 最下到最上层 (在浏览器通过颜色, 
 6. z-index: 0
 7. z-index: +
 8. 兄弟元素重叠, 后面的盖在前面的身上
-
 
 ### ::before 和 :after 双冒号和但冒号区别
 
@@ -264,9 +260,10 @@ window.onresize = function() {
 
 ### CSS 的盒子模型
 
-- IE 盒子模型: `margin width = border + padding + content)`
-- 标准 W3C 盒子模型 `margin border padding contnet = width`
-- `box-sizing: content-box/border-box` (标准/IE)转换
+- IE 盒子模型: `margin, width = (border + padding + content)`
+- 标准 W3C 盒子模型 `margin border padding contnet-width`
+- `box-sizing: content-box` 默认浏览器使用标准模型
+- `box-sizing: border-box` (标准/IE)转换, 告诉浏览器使用 `border-box` 定义区域
 
 ### px em rem vw vh
 
@@ -284,32 +281,32 @@ window.onresize = function() {
 </div>
 
 html {
-  font-size: 10px; /_ 不建议设置 font-size: 62.5%; 在 IE 9-11 上有偏差，具体表现为 1rem = 9.93px。 _/
+font-size: 10px; /_ 不建议设置 font-size: 62.5%; 在 IE 9-11 上有偏差，具体表现为 1rem = 9.93px。 _/
 }
 
 .sqaure {
-  width: 5rem; /_ 50px _/
-  height: 5rem; /_ 50px _/
+width: 5rem; /_ 50px _/
+height: 5rem; /_ 50px _/
 }
 ```
 
 ### 动态 REM
 
-REM: root em 根元素(html元素)的 font-size
+REM: root em 根元素(html 元素)的 font-size
 
 ```css
 html {
-  font-size: 16px
+  font-size: 16px;
 }
 
 div {
-  font-size: 2rem /** 1rem = 16 2rem = 32 */
+  font-size: 2rem; /** 1rem = 16 2rem = 32 */
 }
 ```
 
 1. 响应式: 是否有设计图, 不同尺寸的设计图
-   - 0-320px 一套css
-   - 320-375px 一套css
+   - 0-320px 一套 css
+   - 320-375px 一套 css
    - ...
    - 百分比布局 宽度百分比好写, 高度百分比不好弄
    - 整体缩放 rem
@@ -422,24 +419,23 @@ BFC 功能
 触发 BFC
 
 - 根元素
-- 浮动元素: float 值非 `none` 
+- 浮动元素: float 值非 `none`
 - 绝对定位元素: position 值为 `absolute | fixed`
 - overflow 值非 `visible`
 - display 值为 `inline-block | flex | inline-flex | table-cell`
 - `display: flow-root` 让当前元素触发 bfc
 
-
 :::tip
-从根元素开始, 就开启了`BFC`, 按照文档流排列, 子元素或者孙子元素有些布局, 可以触发自己的BFC, 因为父亲只能管儿子, 管不了孙子
+从根元素开始, 就开启了`BFC`, 按照文档流排列, 子元素或者孙子元素有些布局, 可以触发自己的 BFC, 因为父亲只能管儿子, 管不了孙子
 
-只有 `display: flow-root` 触发BFC 没有副作用, `浮动; overflow: hidden; 定位` 等都有自己的特性
+只有 `display: flow-root` 触发 BFC 没有副作用, `浮动; overflow: hidden; 定位` 等都有自己的特性
 :::
 
 ### 理解 font-size line-height
 
 下面字体的大小 `100px` 是什么的高度
 
-- 字体不同, font-size 显示的大小不同, 每个字体有一个默认的 `推荐行高`  em-square
+- 字体不同, font-size 显示的大小不同, 每个字体有一个默认的 `推荐行高` em-square
   - font-size 即不指字体大小, 也不指字体高度, 而是设计字体时给定的
 - line-height 指定一个内联元素真实的占地高度
   - 字体基于基线对齐, 不同字体基线对齐方式, 会导致父元素变大
@@ -453,7 +449,7 @@ BFC 功能
 span {
   vertical-align: top;
   font-size: 100px;
-  font-family: 宋体、微软雅黑、...
+  font-family: 宋体、微软雅黑、...;
 }
 ```
 
@@ -519,7 +515,6 @@ span {
 - 将 JS 放在底部
   - 脚本会阻塞后面内容的呈现
 
-
 ### offset、scroll、client
 
 offsetHeight = 内容高度 + padding + border
@@ -567,11 +562,11 @@ scrollHeight = 内容实际尺寸 + padding
   </div>
 </body>
 <script>
-  const box1 = document.getElementsByClassName("box1")[0];
-  const box2 = document.getElementsByClassName("box2")[0];
-  const box3 = document.getElementsByClassName("box3")[0];
-  console.info("盒子1的offsetHeight", box1.offsetHeight); // 150
-  console.info("盒子2的clientHeight", box2.clientHeight); // 140
-  console.info("盒子3的scrollHeight", box3.scrollHeight); // 340
+  const box1 = document.getElementsByClassName("box1")[0]
+  const box2 = document.getElementsByClassName("box2")[0]
+  const box3 = document.getElementsByClassName("box3")[0]
+  console.info("盒子1的offsetHeight", box1.offsetHeight) // 150
+  console.info("盒子2的clientHeight", box2.clientHeight) // 140
+  console.info("盒子3的scrollHeight", box3.scrollHeight) // 340
 </script>
 ```

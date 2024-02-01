@@ -4,17 +4,19 @@ outline: deep
 
 ## 事件机制
 
-### 事件触发三阶段
+### DOM2.0 事件传播机制
 
-- window 往事件触发处传播，遇到注册的捕获事件会触发
-- 传播到事件触发处时触发注册的事件
-- 从事件触发处往 window 传播，遇到注册的冒泡事件会触发
+- 事件捕获阶段: 当某个元素触发某个事件（如 onclick），顶层对象 document 就会发出一个事件流，随着 DOM 树的节点向目标元素节点流去，直到到达事件真正发生的目标元素。在这个过程中，事件相应的监听函数是不会被触发的。
+- 事件目标: 当到达目标元素之后，执行目标元素该事件相应的处理函数。如果没有绑定监听函数，那就不执行。
+- 事件起泡：从目标元素开始，往顶层元素传播。途中如果有节点绑定了相应的事件处理函数，这些函数都会被一次触发。如果想阻止事件起泡，可以使用 e.stopPropagation()（Firefox）或者 e.cancelBubble=true（IE）来组织事件的冒泡传播。
 
 ### 注册事件
 
 `addEventListener` 注册事件，该函数的第三个参数可以是布尔值，也可以是对象。对于布尔值 useCapture 参数来说，该参数默认值为 false ，useCapture 决定了注册的事件是捕获事件还是冒泡事件
 
 `stopPropagation` 是用来阻止事件冒泡的
+
+`preventDefault()`取消事件默认行为: a 链接默认跳转/`type=submit`默认提交表单/其它浏览器默认行为...
 
 ```js
 node.addEventListener(
@@ -37,6 +39,8 @@ node.addEventListener(
 
 ### 事件代理
 
+要理解事件代理,首先要明白什么是事件冒泡: 当一个元素上的事件被触发的时候，比如说鼠标点击了一个按钮，同样的事件将会在那个元素的所有祖先元素中被触发。这一过程被称为事件冒泡。
+
 如果一个节点中的子节点是动态生成的，那么子节点需要注册事件的话应该注册在父节点上
 
 ```html
@@ -53,6 +57,60 @@ node.addEventListener(
     console.log(event.target)
   })
 </script>
+```
+
+## BOM
+
+```js
+// window.onload 和 document.onDOMContentLoaded 有什么区别？
+
+// 页面所有资源加载完成
+window.onload = function () {
+  console.log("window loaded")
+}
+
+// DOM 结构解析完成
+document.addEventListener("onDOMContentLoaded", () => {
+  console.log("DOMContentLoaded")
+})
+```
+
+```js
+// 获取图片真实的宽高
+console.log($("img").width) //0
+$("img").onload = function () {
+  //图片请求到了,触发事件
+  console.log(this.width) //此时才能得到图片的真实大小
+}
+```
+
+```js
+// 获取元素的真实宽高
+window.getComputedStyle(node).height/width // 返回响应的宽高, 单位为像素
+```
+
+```js
+// URL 编码解码
+decodeURI()
+decodeURIComponent()
+encodeURI()
+encodeURIComponent()
+
+encodeURI方法不会对下列字符编码
+
+1. ASCII字母
+2. 数字
+3. ~!@#$&*()=:/,;?+'
+
+encodeURIComponent方法不会对下列字符编码
+1. ASCII字母
+2. 数字
+3. ~!*()'
+
+
+// 为什么需要Url编码，通常如果一样东西需要编码，说明这样东西并不适合传输。原因多种多样，如Size过大，包含隐私数据，对于Url来说，之所 以要进行编码，是因为Url中有些字符会引起歧义
+
+// Url参数字符串中使用key=value键值对这样的形式来传参，键值对之间以&符号分隔，如/s?q=abc&ie=utf- 8。如果你的value字符串中包含了=或者&，那么势必会造成接收Url的服务器解析错误，因此必须将引起歧义的&和=符号进行转义， 也就是对其进行编码
 ```
 
 ## 跨域
@@ -105,7 +163,10 @@ mc.addEventListener("message", (event) => {
 
 Service Worker 是运行在浏览器背后的独立线程，一般可以用来实现缓存功能。使用 Service Worker 的话，传输协议必须为 HTTPS。因为 Service Worker 中涉及到请求拦截，所以必须使用 HTTPS 协议来保障安全。
 
-Service Worker 实现缓存功能一般分为三个步骤：首先需要先注册 Service Worker，然后监听到 install 事件以后就可以缓存需要的文件，那么在下次用户访问的时候就可以通过拦截请求的方式查询是否存在缓存，存在缓存的话就可以直接读取缓存文件，否则就去请求数据
+Service Worker 实现缓存功能一般分为三个步骤: 
+  - 首先需要先注册 Service Worker
+  - 然后监听到 install 事件以后就可以缓存需要的文件，
+  - 那么在下次用户访问的时候就可以通过拦截请求的方式查询是否存在缓存，存在缓存的话就可以直接读取缓存文件，否则就去请求数据
 
 ```js
 // index.js
@@ -450,7 +511,7 @@ HTTP 请求由三部分构成, 分别为:
 
 ```md
 // 请求方法 URL 协议
-GET /images/log HTTP/1,1
+GET /images/log HTTP/1.1
 ```
 
 先引入副作用和幂等的概念
@@ -523,7 +584,7 @@ GET /images/log HTTP/1,1
   - `301 永久性重定向` 资源被分配到新的`URL`
   - `302 临时性重定向` 资源临时被分配到新的 URI
   - `303` 资源存在另一个 URL, 使用 GET 获取资源
-  - `304` 服务器允许访问资源, 但因发生请求为满足条件的情况
+  - `304` 服务器允许访问资源, 但因发生请求未满足条件的情况
 - 4xx 客户端错误
   - `400 bad request` 请求存在语法错误
   - `401 ` 请求需要通过 http 认证

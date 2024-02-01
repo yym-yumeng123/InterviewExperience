@@ -688,3 +688,39 @@ function useData(url) {
   return data
 }
 ```
+
+### 优先级
+
+- 事件优先级: 按照用户事件的交互紧急程度，划分的优先级
+- 更新优先级: 事件导致 React 产生的更新对象（update）的优先级（update.lane）
+- 任务优先级: 产生更新对象之后，React 去执行一个更新任务，这个任务所持有的优先级
+- 调度优先级: Scheduler 依据 React 更新任务生成一个调度任务，这个调度任务所持有的优先级
+
+#### 任务优先级
+
+务优先级被用来区分多个更新任务的紧急程度，它由更新优先级计算而来
+
+假设产生一前一后两个 update：
+
+- 如果后者的任务优先级高于前者，那么会让 `Scheduler` 取消前者的任务调度；
+- 如果后者的任务优先级等于前者，后者不会导致前者被取消，而是会复用前者的更新任务，将两个同等优先级的更新收敛到一次任务中；
+- 如果后者的任务优先级低于前者，同样不会导致前者的任务被取消，而是在前者更新完成后，再次用 Scheduler 对后者发起一次任务调度。
+
+意义：**保证高优先级任务及时响应，收敛同等优先级的任务调度**
+
+任务优先级在即将调度的时候去计算，代码在`ensureRootIsScheduled`函数中：
+
+```javascript
+function ensureRootIsScheduled(root: FiberRoot, currentTime: number) {
+  ...
+  // 获取nextLanes，顺便计算任务优先级
+  const nextLanes = getNextLanes(
+    root,
+    root === workInProgressRoot ? workInProgressRootRenderLanes : NoLanes,
+  );
+
+  // 获取上面计算得出的任务优先级
+  const newCallbackPriority = returnNextLanesPriority();
+  ...
+}
+```
