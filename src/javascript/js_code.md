@@ -18,6 +18,7 @@ title: "手写代码"
 考虑一个场景，滚动事件中会发起网络请求，但是我们并不希望用户在滚动过程中一直发起请求，而是隔一段时间发起一次，对于这种情况我们就可以使用节流。
 
 ```js
+// 1. 计算当前时间与上次执行函数时间的间隔
 // func是用户传入需要防抖的函数
 // wait是等待时间
 const throttle = (func, wait = 50) => {
@@ -42,23 +43,17 @@ setInterval(
   1
 )
 
+// 2. 使用定时器
 // 每隔一段时间就执行一次
 function throttle(fn, wait) {
-  let timer = null
-  let flag = false
+  let inThrottle // 是否处于节流限制时间内
 
   return function (...args) {
-    if (!flag) {
-      fn.apply(this, args)
-      flag = true
-    } else {
-      if (!timer) {
-        timer = setTimeout(() => {
-          fn.apply(this, args)
-          flag = false
-          timer = null
-        }, wait)
-      }
+    // 跳出时间限制
+    if (!inThrottle) {
+      func.apply(this, args)
+      inThrottle = true
+      setTimeout(() => (inThrottle = false), wait)
     }
   }
 }
@@ -71,6 +66,7 @@ function throttle(fn, wait) {
 考虑一个场景，有一个按钮点击会触发网络请求，但是我们并不希望每次点击都发起网络请求，而是当用户点击按钮一段时间后没有再次点击的情况才去发起网络请求，对于这种情况我们就可以使用防抖。
 
 ```js
+// 1. 停止触发事件n毫秒后执行回调函数
 // func是用户传入需要防抖的函数
 // wait是等待时间
 const debounce = (func, wait = 50) => {
@@ -84,6 +80,21 @@ const debounce = (func, wait = 50) => {
     timer = setTimeout(() => {
       func.apply(this, args)
     }, wait)
+  }
+}
+
+// 2. 触发事件后立即执行回调函数, 但是触发后n毫秒内不会再执行回调函数, 如果 n 毫秒内触发了事件, 也会重新计时
+function debounce(func, delay) {
+  let timer = null
+
+  return function (...args) {
+    if (!timer) {
+      func.apply(this, args)
+    }
+    clearTimeout(timer)
+    timer = setTimeout(() => {
+      timer = null
+    }, delay)
   }
 }
 ```
@@ -176,7 +187,7 @@ function deepClone(source) {
       }
       cache.push([source, dist])
       for (const key in source) {
-        if (source.hasOwnproperty(key)) {
+        if (source.hasOwnProperty(key)) {
           dist[key] = deepClone(source[key])
         }
       }
@@ -524,9 +535,9 @@ for(let i = 0; i < arr.length; i++) {
 }
 
 // reduce [] 也是无值就插入
-const newArr = arr.reduce((prev, cur) => {
+const newArr = arr.reduce((prev, cur) =>
   prev.includes(cur) ? prev : prev.concat(cur)
-}, [])
+, [])
 ```
 
 ### 多维数组的最大值
