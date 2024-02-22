@@ -142,6 +142,11 @@ User 接口为 {
 */
 ```
 
+### any anknown never
+
+1. any 和 unkonwn 在 TS 类型中属于最顶层的 Top Type，即所有的类型都是它俩的子类型
+2. never 则相反，它作为 Bottom Type 是所有类型的子类型。
+
 ### TS 内置类型工具
 
 - never 表示一个不存在的类型

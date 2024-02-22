@@ -33,7 +33,8 @@ export default defineConfig({
           { text: '设计模式', link: '/javascript/design_mode' },
           { text: 'TypeScript', link: 'typescript/ts' },
           { text: 'Webpack', link: '/javascript/webpack' },
-          {text: 'React', link: "react/react"}
+          {text: 'React', link: "react/react"},
+          {text: 'Vue', link: "vue/vue"}
         ]
       },
       {

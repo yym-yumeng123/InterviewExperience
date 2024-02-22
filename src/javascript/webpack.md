@@ -299,9 +299,9 @@ module.exports = {
     new webpack.DllReferencePlugin({
       context: __dirname,
       // manifest 就是之前打包出来的 json 文件
-      manifest: require('./dist/vendor-manifest.json'),
-    })
-  ]
+      manifest: require("./dist/vendor-manifest.json"),
+    }),
+  ],
 }
 ```
 
@@ -319,12 +319,26 @@ module.exports = {
 分析出模块之间的依赖关系，尽可能的把打散的模块合并到一个函数中去，但前提是不能造成代码冗余。 因此只有那些被引用了一次的模块才能被合并
 
 ```js
-const ModuleConcatenationPlugin = require('webpack/lib/optimize/ModuleConcatenationPlugin');
+const ModuleConcatenationPlugin = require("webpack/lib/optimize/ModuleConcatenationPlugin")
 
 module.exports = {
   plugins: [
     // 开启 Scope Hoisting
     new ModuleConcatenationPlugin(),
   ],
-};
+}
 ```
+
+### 基于 ESM 的 tree shaking
+
+### 压缩资源（mini-css-extract-plugin，compression-webpack-plugin）
+
+## 关于 babel 的理解
+
+babel 是一个工具链，主要用于将 ES2015+代码转换为当前和旧浏览器或环境中向后兼容的 Js 版本。这句话比较官方，其实 babel 就是一个语法转换工具链，它会将我们书写的代码（vue 或 react）通过相关的解析（对应的 Preset），主要是词法解析和语法解析，通过 babel-parser 转换成对应的 AST 树，再对得到的抽象语法树根据相关的规则配置，转换成最终需要的目标平台识别的 AST 树，再得到目标代码。
+
+在日程的 Webpack 使用主要有三个插件：`babel-loader、babel-core、babel-preset-env`。babel 本质上会运行 babel-loader 一个函数，在运行时会匹配到对应的文件，根据 babel.config.js（.balelrc）的配置（这里会配置相关的 babel-preset-env,它会告诉 babel 用什么规则去进行代码转换）去将代码进行一个解析和转换（转换依靠的是 babel-core），最终得到目标平台的代码。
+
+### vite 和 webpak 的区别
+
+vite 在开环境时基于 ESBuild 打包，相比 webpack 的编译方式，大大提高了项目的启动和热更新速度。
