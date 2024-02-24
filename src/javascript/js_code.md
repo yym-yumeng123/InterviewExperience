@@ -580,11 +580,28 @@ function flatten3(arr) {
   return arr
 }
 
+arr.flat(Infinity)
+
 const arr = [1, [2, 3, 4], [5, [6, [7, [8]]]]]
 
 console.log(flatten1(arr))
 console.log(flatten2(arr))
 console.log(flatten3(arr))
+```
+
+### 原地打乱数组（数组洗牌）
+
+```js
+function shuffleArray(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    // 生成随机索引
+    const j = Math.floor(Math.random() * i)
+
+    ;[array[i], array[j]] = [array[j], array[i]] // 交换当前位置的元素和随机位置的元素
+  }
+
+  return array
+}
 ```
 
 ## 字符串
@@ -606,6 +623,40 @@ for (const key in obj) {
   if (max < obj[key]) {
     max = obj[key]
   }
+}
+```
+
+### 找出字符串中不含有重复字符的 最长子串 的长度
+
+```js
+var lengthOfLongestSubstring = function (s) {
+  let arr = []
+  let max = 0
+  for (let i = 0, len = s.length; i < len; ++i) {
+    const sameIndex = arr.findIndex((item) => item === s[i])
+    arr.push(s[i])
+    if (sameIndex > -1) {
+      arr = arr.splice(sameIndex + 1)
+    }
+    max = Math.max(arr.length, max)
+  }
+  return max
+}
+```
+
+### 给定一个字符串，判定其能否排列成回文串
+
+```js
+var canPermutePalindrome = function (s) {
+  const set = new Set()
+  s.split("").forEach((key) => {
+    if (set.has(key)) {
+      set.delete(key)
+    } else {
+      set.add(key)
+    }
+  })
+  return set.size <= 1
 }
 ```
 
@@ -749,4 +800,223 @@ console.log(getQueryByName1("sex")) // 男
 
 console.log(getQueryByName("age")) // null
 console.log(getQueryByName1("age")) // null
+```
+
+## 获取当前日期 (年-月-日 时:分:秒)
+
+```js
+function formatDateTime(currentDate) {
+  // 获取年、月、日、时、分、秒
+  const year = currentDate.getFullYear()
+  const month = (currentDate.getMonth() + 1).toString().padStart(2, "0") // 月份从0开始，需要加1，并补零
+  const day = currentDate.getDate().toString().padStart(2, "0") // 补零
+  const hours = currentDate.getHours().toString().padStart(2, "0")
+  const minutes = currentDate.getMinutes().toString().padStart(2, "0")
+  const seconds = currentDate.getSeconds().toString().padStart(2, "0")
+  // 格式化日期时间字符串
+  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
+}
+
+console.log(formatDateTime(new Date())) // 输出格式化后的日期时间字符串
+```
+
+## 实现一个 once 函数，传入函数参数只执行一次
+
+```js
+function once(fn) {
+  let called = false // 记录函数是否被调用
+
+  return (...args) => {
+    if (!called) {
+      called = true
+      return fn(...args)
+    }
+  }
+}
+
+// 使用示例
+const doSomethingOnce = once(function () {
+  console.log("This will only be executed once.")
+})
+
+doSomethingOnce() // 打印 "This will only be executed once."
+doSomethingOnce() // 这次不会执行
+```
+
+## 实现一个私有变量，用 get 、set 可以访问，不能直接访问
+
+```js
+const privateName = Symbol()
+
+class Person {
+  constructor(name) {
+    // 使用 symbol 作为属性名
+    this[privateName] = name
+  }
+
+  getName() {
+    return this[privateName]
+  }
+
+  setName(name) {
+    this[privateName] = name
+  }
+}
+
+const myPerson = new Person("yym")
+
+console.log(myPerson.getName()) // 通过 get 方法访问私有变量 输出 yym
+myPerson.setName("sam") // 通过 set 方法修改私有变量
+console.log(myPerson.getName()) // 输出: "sam"
+```
+
+## 原生的 ajax 封装成 promise
+
+```js
+function ajax(url, method, data) {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest()
+    xhr.open(method, url, true)
+    xhr.onload = function () {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        reslove(xhr.responseText)
+      } else {
+        reject(xhr.statusText)
+      }
+    }
+
+    xhr.onerror = () => reject(xhr.statusText)
+
+    if (data) {
+      xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8")
+      xhr.send(JSON.stringify(data))
+    } else {
+      xhr.send()
+    }
+  })
+}
+
+// 使用示例
+ajax("https://jsonplaceholder.typicode.com/posts/1", "GET")
+  .then(function (response) {
+    console.log("Success:", response)
+  })
+  .catch(function (error) {
+    console.error("Error:", error)
+  })
+```
+
+## 实现 Sleep 效果
+
+```js
+function sleep(time) {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      reslove()
+    }, time)
+  })
+}
+
+;(async () => {
+  await sleep(3000)
+  console.log("yym")
+})()
+```
+
+## 实现图片下载功能
+
+```js
+function downloadImage(src, imgName){
+    let image = new Image();
+    image.src = src;
+    image.setAttribute("crossOrigin", "anonymous");
+    image.onload = function() {
+      let c = document.createElement("canvas");
+      c.width = image.width;
+      c.height = image.height;
+      c.getContext("2d").drawImage(image, 0, 0, image.width, image.height);
+      let a = document.createElement("a");
+      a.download = imgName;
+      a.href = c.toDataURL("image/png");
+      a.click();
+    }​
+  }
+```
+
+## 算法题
+
+### 青蛙爬台阶
+
+```js
+// 一只青蛙一次可以跳上1级台阶，也可以跳上2级台阶。求该青蛙跳上一个 n 级的台阶总共有多少种跳法
+function numWats(n) {
+  if (n <= 1) return 1
+  if (n <= 2) return 2
+
+  return numWays(n - 1) + numWays(n - 2)
+}
+```
+
+### 反转一个链表
+
+```js
+const node = {
+  val: "",
+  next: "",
+}
+
+var reverseList = function (head) {
+  if (!head) {
+    return head
+  }
+
+  let pre = null
+  let cur = head
+
+  while (cur) {
+    const { next } = cur
+    cur.next = pre
+    pre = cur
+    cur = next
+  }
+
+  return pre
+}
+```
+
+### 实现一个全排列
+
+给定的数组，生成包含数组中所有元素的所有可能排列的过程。每个排列都是数组中元素的不同排列顺序。例如，对于数组 [1, 2, 3] 的全排列包括:
+
+- 123 132 213 231 321 312
+
+```js
+function permute(arr) {
+  const result = [] // 用于存储生成的全排列
+
+  function backtrack(subarr, remaining) {
+    // 如果没有剩余元素，当前排列就是一个全排列
+    if (remaining.length === 0) {
+      result.push(subarr.slice()) // 将当前排列添加到结果数组
+    } else {
+      for (let i = 0; i < remaining.length; i++) {
+        subarr.push(remaining[i]) // 将当前元素添加到排列
+        const newRemaining = [
+          ...remaining.slice(0, i),
+          ...remaining.slice(i + 1),
+        ] // 生成剩余元素的新数组
+        backtrack(subarr, newRemaining) // 递归生成剩余元素的排列
+        subarr.pop() // 回溯，移除刚添加的元素，以尝试其他排列方式
+      }
+    }
+  }
+
+  // 调用回溯函数开始生成全排列
+  backtrack([], arr)
+  return result // 返回所有生成的全排列
+}
+
+const inputArray = [1, 2, 3]
+const permutations = permute(inputArray)
+console.log(permutations)
 ```
