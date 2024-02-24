@@ -534,10 +534,13 @@ for(let i = 0; i < arr.length; i++) {
   }
 }
 
-// reduce [] 也是无值就插入
+// 3. reduce [] 也是无值就插入
 const newArr = arr.reduce((prev, cur) =>
   prev.includes(cur) ? prev : prev.concat(cur)
 , [])
+
+// 4. filter
+const newArr = arr.filter((value, index, self) => self.indexOf(value) === index)
 ```
 
 ### 多维数组的最大值

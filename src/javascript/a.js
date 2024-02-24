@@ -32,3 +32,30 @@ const addThree = (a, b, c) => a + b + c
 
 console.log(currify(addTwo)(1)(2))
 console.log(currify(addThree)(1)(2)(3))
+
+
+function myNew(constructor, ...args) {
+  const obj = Object.create(constructor.prototype)
+  const result  = constructor.apply(obj, args)
+  return result instanceof Object ? result : obj
+}
+
+
+Function.prototype.myCall = function(context, ...args) {
+  context = context || window
+  context.fn = this
+
+  const result = context.fn(...args)
+
+  delete context.fn
+
+  return result
+}
+
+
+Function.prototype.bind = function(context, ...args) {
+
+  return  function (...params) {
+    return this.apply(context, args.concat(params))  
+  }
+}

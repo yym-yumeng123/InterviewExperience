@@ -26,247 +26,13 @@ function bar() {
 bar() // 1
 ```
 
-### 执行上下文栈
+### 如何判断 object 为空
 
-当 JavaScript 执行一段可执行代码(executable code)时，会创建对应的执行上下文(execution context)
-
-对于每个执行上下文，都有三个重要属性：
-
-- 变量对象(Variable object，VO)
-- 作用域链(Scope chain)
-- this
-
-#### 变量对象
-
-变量对象是与执行上下文相关的数据作用域，存储了在上下文中定义的变量和函数声明
-
-#### 作用域链
-
-当查找变量的时候，会先从当前上下文的变量对象中查找，如果没有找到，就会从父级(词法层面上的父级)执行上下文的变量对象中查找，一直找到全局上下文的变量对象，也就是全局对象。这样由多个执行上下文的变量对象构成的链表就叫做作用域链
-
-#### 函数创建
-
-函数有一个内部属性 [[scope]]，当函数创建的时候，就会保存所有父变量对象到其中，可以理解 [[scope]] 就是所有父变量对象的层级链，但是注意：[[scope]] 并不代表完整的作用域链！
-
-```js
-function foo() {
-    function bar() {
-        ...
-    }
-}
-```
-
-函数创建时，各自的[[scope]]为：
-
-```js
-foo.[[scope]] = [
-  globalContext.VO
-];
-
-bar.[[scope]] = [
-    fooContext.AO,
-    globalContext.VO
-];
-```
-
-#### 函数激活
-
-当函数激活时，进入函数上下文，创建 VO/AO 后，就会将活动对象添加到作用链的前端。
-
-这时候执行上下文的作用域链，我们命名为 Scope：
-
-```js
-Scope = [AO].concat([[Scope]])
-```
-
-#### 例子
-
-```js
-var scope = "global scope"
-function checkscope() {
-  var scope2 = "local scope"
-  return scope2
-}
-checkscope()
-```
-
-执行过程如下：
-
-1. checkscope 函数被创建，保存作用域链到内部属性[[scope]]
-
-```js
-checkscope.[[scope]] = [
-    globalContext.VO
-];
-```
-
-2. 执行 checkscope 函数，创建 checkscope 函数执行上下文，checkscope 函数执行上下文被压入执行上下文栈
-
-```js
-ECStack = [checkscopeContext, globalContext]
-```
-
-3. checkscope 函数并不立刻执行，开始做准备工作，第一步：复制函数[[scope]]属性创建作用域链
-
-```js
-checkscopeContext = {
-    Scope: checkscope.[[scope]],
-}
-```
-
-4. 第二步：用 arguments 创建活动对象，随后初始化活动对象，加入形参、函数声明、变量声明
-
-```js
-checkscopeContext = {
-    AO: {
-        arguments: {
-            length: 0
-        },
-        scope2: undefined
-    }，
-    Scope: checkscope.[[scope]],
-}
-```
-
-5. 第三步：将活动对象压入 checkscope 作用域链顶端
-
-```js
-checkscopeContext = {
-  AO: {
-    arguments: {
-      length: 0,
-    },
-    scope2: undefined,
-  },
-  Scope: [AO, [[Scope]]],
-}
-```
-
-6. 准备工作做完，开始执行函数，随着函数的执行，修改 AO 的属性值
-
-```js
-checkscopeContext = {
-  AO: {
-    arguments: {
-      length: 0,
-    },
-    scope2: "local scope",
-  },
-  Scope: [AO, [[Scope]]],
-}
-```
-
-7. 查找到 scope2 的值，返回后函数执行完毕，函数上下文从执行上下文栈中弹出
-
-```js
-ECStack = [globalContext]
-```
-
-#### 执行上下文
-
-```js
-var scope = "global scope"
-function checkscope() {
-  var scope = "local scope"
-  function f() {
-    return scope
-  }
-  return f()
-}
-checkscope()
-```
-
-执行过程如下：
-
-1. 执行全局代码，创建全局执行上下文，全局上下文被压入执行上下文栈
-
-```js
-ECStack = [globalContext]
-```
-
-2. 全局上下文初始化
-
-```js
-globalContext = {
-  VO: [global],
-  Scope: [globalContext.VO],
-  this: globalContext.VO,
-}
-```
-
-3. 初始化的同时，checkscope 函数被创建，保存作用域链到函数的内部属性[[scope]]
-
-```js
-checkscope.[[scope]] = [
-  globalContext.VO
-];
-```
-
-4. 执行 checkscope 函数，创建 checkscope 函数执行上下文，checkscope 函数执行上下文被压入执行上下文栈
-
-```js
-ECStack = [checkscopeContext, globalContext]
-```
-
-5. checkscope 函数执行上下文初始化：
-   1. 复制函数 [[scope]] 属性创建作用域链，
-   2. 用 arguments 创建活动对象，
-   3. 初始化活动对象，即加入形参、函数声明、变量声明，
-   4. 将活动对象压入 checkscope 作用域链顶端。
-
-同时 f 函数被创建，保存作用域链到 f 函数的内部属性[[scope]]
-
-```js
-checkscopeContext = {
-  AO: {
-    arguments: {
-      length: 0
-    },
-    scope: undefined,
-    f: reference to function f(){}
-},
-  Scope: [AO, globalContext.VO],
-    this: undefined
-}
-```
-
-6. 执行 f 函数，创建 f 函数执行上下文，f 函数执行上下文被压入执行上下文栈
-
-```js
-ECStack = [fContext, checkscopeContext, globalContext]
-```
-
-7. f 函数执行上下文初始化, 以下跟第 4 步相同：
-   1. 复制函数 [[scope]] 属性创建作用域链
-   2. 用 arguments 创建活动对象
-   3. 初始化活动对象，即加入形参、函数声明、变量声明
-   4. 将活动对象压入 f 作用域链顶端
-
-```js
-fContext = {
-  AO: {
-    arguments: {
-      length: 0,
-    },
-  },
-  Scope: [AO, checkscopeContext.AO, globalContext.VO],
-  this: undefined,
-}
-```
-
-8. f 函数执行，沿着作用域链查找 scope 值，返回 scope 值
-
-9. f 函数执行完毕，f 函数上下文从执行上下文栈中弹出
-
-```js
-ECStack = [checkscopeContext, globalContext]
-```
-
-10. checkscope 函数执行完毕，checkscope 执行上下文从执行上下文栈中弹出
-
-```js
-ECStack = [globalContext]
-```
+- `Object.keys(obj).length === 0`
+- `JSON.stringify(obj) === '{}`
+- `obj.hasOwnProperty() === false`
+- `for-in`
+- `Reflect.ownKeys(obj).length === 0` 使用反射对象的原生方法
 
 ### 异步加载 JS
 
@@ -289,9 +55,9 @@ ECStack = [globalContext]
   - `BigInt`: 这是一种可以表示任意大的整数的数据类型。BigInt 类型的数值在其末尾加 n
   - `null`: 这是一个表示无值或无对象的特殊值。它只有一个值，即 null
   - `undefined`: 表示未定义或未赋值的值。它只有一个值，即 undefined
-  - `Symbol`: 这是一种唯一且不可变的数据类型，经常用作对象属性的键。
+  - `Symbol`: 这是一种唯一且不可变的数据类型，经常用作对象属性的键; 不可枚举; 用作属性名
   - `number`: 是浮点类型的
-- 对象类型: `object`
+- 对象类型: `Object`
 
 原始类型存储的是值, 没有函数可以调用; 对象类型存储的是地址(指针)
 
@@ -327,7 +93,12 @@ JS 所采用的`IEEE 754`是二进制浮点数的算术标准, 这个标准里�
 ### null undefined 区别
 
 - `null` 是一个表示"无"的对象(空对象指针), 转为数值为 0
+  - null 是原型链的顶层: 所有对象都继承自 Object 原型对象, Object 原型对象的原型是 null
 - `undefiend` 是一个表示"无"的原始值, 转为数值为 NaN
+  - 当声明了一个变量但未初始化它时，它的值为 undefined
+  - 当访问对象属性或数组元素中不存在的属性或索引时，也会返回 undefined
+  - 当函数没有返回值时，默认返回 undefined
+  - 如果函数的参数没有传递或没有被提供值，函数内的对应参数的值为 undefined
 
 ### 立即执行函数
 
@@ -359,40 +130,15 @@ JS 所采用的`IEEE 754`是二进制浮点数的算术标准, 这个标准里�
  * 4. 0 == 0
  */
 console.log([] == ![]) // true
-```
 
-### typeof instanceof 的作用和区别
-
-- 作用都是类型识别
-- `typeof` 操作符
-  - 可以识别原始类型(null 除外)
-  - 不能识别具体的对象类型(function 除外)
-- `instanceof`
-  - 能够识别对象类型
-  - 不能识别原始类型
-
-```js
-typeof "1" // 'string'
-typeof 1 // "number"
-typeof true // "boolean"
-typeof undefined // "undefined"
-typeof null // "object"
-[] instanceof Array // true
-```
-
-```js
-// 内部机制是通过判断对象的原型链中是不是能找到类型的 `prototype`
-function myInstanceof(left, right) {
-  // 首先获取类型的原型
-  let prototype = right.prototype
-  // 然后获得对象的原型
-  left = left.__proto__
-  // 然后一直循环判断对象的原型是否等于类型的原型，直到对象原型为 null，因为原型链最终为 null
-  while (true) {
-    if (left === null || left === undefined) return false
-    if (prototype === left) return true
-    left = left.__proto__
-  }
+const a = {
+  i: 1,
+  valueOf: function () {
+    return this.i++
+  },
+}
+if (a == 1 && a == 2 && a == 3) {
+  console.log("Hello World!")
 }
 ```
 
@@ -437,12 +183,53 @@ true + true // 2
 4 * [1, 2] // NaN
 ```
 
+### typeof instanceof 的作用和区别
+
+- 作用都是类型识别
+- `typeof` 操作符
+  - 可以识别原始类型(null 除外)
+  - 不能识别具体的对象类型(function 除外)
+- `instanceof`
+  - 能够识别对象类型
+  - 不能识别原始类型
+
+```js
+typeof "1" // 'string'
+typeof 1 // "number"
+typeof true // "boolean"
+typeof undefined // "undefined"
+typeof null // "object"
+[] instanceof Array // true
+```
+
+```js
+// 内部机制是通过判断对象的原型链中是不是能找到类型的 `prototype`
+function myInstanceof(left, right) {
+  // 首先获取类型的原型
+  let prototype = right.prototype
+  // 然后获得对象的原型
+  left = left.__proto__
+  // 然后一直循环判断对象的原型是否等于类型的原型，直到对象原型为 null，因为原型链最终为 null
+  while (true) {
+    if (left === null || left === undefined) return false
+    if (prototype === left) return true
+    left = left.__proto__
+  }
+}
+```
+
 ### void 0 和 undefined
 
 - `undefined` 是一种数据类型, 唯一值 `undefined`, 声明一个变量但不赋值, 就是 `undefined`, 可以被重新赋值
 - `void运算` 是 js 的一种运算符, 评估一个表达式但不返回值 `void(0) void 0 void(null)` 都会返回`undefined`, 任何情况都会返回 undefiend, 更安全
 
-### JS 作用域
+### JS 作用域(链)
+
+什么是作用域链?
+
+作用域链是 JavaScript 中用于查找变量的一种机制，它是由一系列嵌套的作用域对象构成的链式结构，每个作用域对象包含了在该作用域中声明的变量以及对外部作用域的引用，目的是确定在给定的执行上下文中如何查找变量。当您引用一个变量时，JavaScript 引擎会首先在当前作用域对象中查找该变量，如果找不到，它会沿着作用域链向上查找，直到找到该变量或达到全局作用域，如果变量在全局作用域中也找不到，将抛出一个引用错误
+
+使用闭包可以延长作用域链
 
 - 全局作用域和函数作用域
 - ES6 引入 `let const` 关键字定义的变量具有块级作用域, 在 `{}`（花括号）内部定义的变量只能在该块内访问，超出该块则无法访问
@@ -542,7 +329,11 @@ function f1(x) {
 - 可以实现方法和属性的私有化
   - 函数作为返回值; 作为参数传递
 - 闭包里面的变量会在内存, 不被及时销毁, 造成内存损耗
+
   - 解决方法是，在退出函数之前，将不使用的局部变量全部删除
+
+- 优点: 保护变量, 避免全局污染; 可以创建私有变量, 实现模块化的封装和隐藏;
+- 缺点: 内存占用; 性能损耗, 设计作用域链的查找, 带来一定的性能损耗
 
 ```js{2,4}
 function init() {
@@ -563,6 +354,18 @@ for(var i = 0; i < list.length; i++) {
   })(i)
 }
 ```
+
+### 什么是内存泄露
+
+内存泄漏是指应用程序中的内存不再被使用但仍然被占用，导致内存消耗逐渐增加，最终可能导致应用程序性能下降或崩溃。内存泄漏通常是由于开发者编写的代码未正确释放不再需要的对象或数据而导致的
+
+案例:
+
+1. 意外的全局变量
+2. 闭包: 闭包可能会无意中持有对不再需要的变量或对象的引用，从而阻止它们被垃圾回收
+3. 事件监听器: 忘记移除事件监听器可能会导致内存泄漏，因为与监听器相关联的对象将无法被垃圾回收
+4. 循环引用: 对象之间的循环引用会阻止它们被垃圾回收
+5. setTimeout/setInterval: 使用 setTimeout 或 setInterval 时，如果没有正确清理，可能会导致内存泄漏，特别是当回调函数持有对大型对象的引用时
 
 ### this
 
@@ -966,7 +769,131 @@ try {
 console.log(123)
 ```
 
+### 如何遍历对象
+
+```js
+// for in
+const obj = { a: 1, b: 2, c: 3 }
+for (let key in obj) {
+  console.log(key, obj[key])
+}
+
+// Object.keys
+const keys = Object.keys(obj)
+
+// Object.entries
+const entries = Object.entries(obj)
+
+// Reflect.ownKeys
+Reflect.ownKeys(obj)
+```
+
+### 宿主对象 内置对象 原生对象
+
+宿主对象是由宿主环境（通常是浏览器或 Node.js）提供的对象。它们不属于 JavaScript 的核心，而是根据运行环境提供的功能而存在。宿主对象可以包括
+
+- window, document, XMLHttpRequest
+- global process
+
+内置对象是 JavaScript 语言本身提供的对象，它们包含在 JavaScript 的标准规范
+
+- 全局对象, Math, Date Regexp
+
+原生对象是 JavaScript 语言的一部分，但它们不是内置对象。原生对象是通过构造函数或字面量方式创建的对象，例如数组、字符串、函数、对象等
+
+```js
+const arr = [1, 2, 3] // 创建数组对象​
+const func = function () {} // 创建函数对象​
+const obj = { key: "value" } // 创建对象
+```
+
+### 什么是类数组, 转化为真是的数组
+
+类数组是一种类似数组的对象, 它们具有类似数组的结构, 具有数字索引和 length 属性, 但不具有数组对象上的方法和功能
+
+- 函数的 argumengts 对象
+- DOM 元素列表 (querySelectorAll 获取的元素集合)
+- 一些内置方法 (getElementsByTagName) 返回的集合
+
+```js
+Array.from(nodeList)
+
+Array.prototype.slice.call(nodeList)
+
+[...nodeList] // 扩展运算符
+```
+
+### Ajax 避免浏览器缓存方法
+
+```js
+// 1. 添加时间戳或随机参数
+var timestamp = new Date().getTime();
+var url = 'data.json?timestamp=' + timestamp;
+
+// 2. 禁用缓存头信息
+var xhr = new XMLHttpRequest();
+xhr.open('GET', 'data.json', true);
+xhr.setRequestHeader('Cache-Control', 'no-cache');
+xhr.send()
+
+// 3. 设置响应头：服务器可以在响应头中设置缓存控制信息，以告诉浏览器不要缓存响应
+Cache-Control: no-cache, no-store, must-revalidate
+Pragma: no-cache
+Expires: 0
+
+// 4. 使用 POST 请求：
+```
+
+### eval 的功能和危害
+
+eval 是 JavaScript 中的一个全局函数，用于将包含 JavaScript 代码的字符串作为参数，并执行该代码; 动态执行字符串中的 JavaScript 代码，可以在运行时生成 JavaScript 代码并执行它
+
+- 安全风险: 它允许执行来自不受信任的来源的代码
+- 性能问题: 它需要在运行时解析和执行代码
+- 可读性问题
+
+### JS 监听对象属性的改变
+
+```js
+const person = {
+  firstName: 'John',
+  lastName: 'Doe'
+}
+
+Object.defineProperty(person, 'firstName', {
+  get() {
+    return this._firstName
+  }
+  set(value) {
+    this._firstName = value
+  }
+  configureable: true
+})
+const handle = {
+  get(target, property) {
+    return target[property]
+  },
+  set(target, property, value) {
+    target[property] = value
+    return true
+  }
+}
+
+const proxyPerson = new Proxy(person, handle)
+```
+
 ## ES6+
+
+- `let const` 块级作用域的变量
+- 箭头函数
+- 模板字符串
+- 解构赋值
+- 类和模块 `class import`
+- `Promise async await`
+- `Array.prototype.includes() .flat() .flatMap()`
+- `Object.values()  Object.entries()`
+- 对象的扩展运算符 `...`
+- 可选连操作符 `??`
 
 ### var let const
 
@@ -975,19 +902,53 @@ console.log(123)
   - 在全局作用域下声明变量会导致变量挂载在 `window` 上
   - 声明的变量会发生提升, 函数提升优先于变量提升，函数提升会把整个函数挪到作用域顶部，变量提升只会把声明挪到作用域顶部
 - `let/const`
-  - 声明的全局变量不会被挂载到 `window` 上
+  - 声明的全局变量不会被挂载到 `window` 上; 会在 Script 作用域下
   - let/const 声明的变量不会提升
-  - 暂时性死区，我们不能在声明前就使用变量
+  - 同级作用域下不能重复声明
+  - 暂时性死区，我们不能在声明前就使用变量; let 声明之前的执行瞬间被称为 “暂时性死区”，此阶段引用任何后面声明的变量会抛出 ReferenceError 错误
 - `var/let` 声明的变量可以再次赋值; `const` 常量不能重新赋值
 - `let/const` 有块作用域; `var` 没有自己的作用域
 
 ### 普通函数和箭头函数
+
+所谓的没有 this，不是箭头函数中没有 this 这个变量，而是箭头函数不绑定自己的 this，它们会捕获其所在上下文的 this 值，作为自己的 this 值。这对于回调函数特别有用，可以避免传统函数中常见的 this 指向问题。例如，在对象方法中使用箭头函数可以确保 this 保持一致
 
 1. this 指向的问题
    - 箭头函数的 this 是在箭头函数定义时就决定的, 而且不可修改; 指向定义时, 外层第一个普通函数 this
 2. 箭头函数不能 `new`
 3. 箭头函数没有原型 `prototype`
 4. 箭头函数没有 `arguments`
+
+```js
+globalThis.a = 100
+function fn() {
+  return {
+    a: 200,
+    m: function () {
+      console.log(this.a)
+    },
+    n: () => {
+      console.log(this.a)
+    },
+    k: function () {
+      return function () {
+        console.log(this.a)
+      }
+    },
+  }
+}
+
+const fn0 = fn()
+fn0.m() // 输出 200，this 指向 {a, m, n}
+fn0.n() // 输出 100，this 指向 globalThis
+fn0.k()() // 输出 100, this 指向 globalThis
+
+const context = { a: 300 }
+const fn1 = fn.call(context) // 改变箭头函数 this 指向
+fn1.m() // 输出 200，this 指向 {a, m, n}
+fn1.n() // 输出 300，this 指向 context
+fn1.k().call(context) // 输出 300，this 指向 context
+```
 
 ### find filter some every
 
@@ -1490,6 +1451,33 @@ let timerId = setTimeout(function tick() {
 }, 2000);
 ```
 
+### 用 setTimeout 来实现倒计时, 与 setInterval 的区别？
+
+- setTimeout: 每隔一秒生成一个任务，等待一秒后执行，执行完成后，再生成下一个任务，等待一秒后执行，如此循环，所以左边任务间的间隔保证是 1 秒
+- setInterval: 无视执行时间，每隔一秒往任务队列添加一个任务，等待一秒后执行，这样会导致任务执行间隔小于 1 秒，甚至任务堆积
+- setInterval 中当任务执行时间大于任务间隔时间，会导致消费赶不上生产
+
+```js
+const countDown = (count) => {
+  setTimeout(() => {
+    count--
+    if (count > 0) {
+      countDown(count)
+    }
+  }, 1000)
+}
+countDown(10)
+
+let count = 10
+let timer = setInterval(() => {
+  count--
+  if (count <= 0) {
+    clearInterval(timer)
+    timer = null
+  }
+}, 1000)
+```
+
 ## 杂谈
 
 ### token 可以放在 cookie 里吗？
@@ -1503,3 +1491,159 @@ let timerId = setTimeout(function tick() {
 埋点通常传采用 img 方式来上传，首先所有浏览器都支持 Image 对象，并且记录的过程很少出错，同时不存在跨域问题，请求 Image 也不会阻塞页面的渲染。建议使用 1\*1 像素的 GIF，其体积小。
 
 现在的浏览器如果支持 Navigator.sendBeacon(url, data)方法，优先使用该方法来实现，它的主要作用就是用于统计数据发送到 web 服务器。当然如果不支持的话就继续使用图片的方式来上传数据
+
+## DOM
+
+### DOM 节点的 Attributes 和 Property 区别
+
+Attribute 属性
+
+- Attribute 是 HTML 元素在文档中的属性，它们通常在 HTML 中定义，并被存储在 HTML 元素的开始标签中
+- Attribute 可以包含在 HTML 中，如 `<div id="myDiv" class="container">` 中的 id 和 class
+- Attribute 始终是字符串值，无论它们在 HTML 中是什么数据类型
+- 通过 getAttribute() 方法可以访问元素的属性值，例如 element.getAttribute("id")
+
+Property（属性）
+
+- Property 是 DOM 元素对象的属性，它们通常表示了 HTML 元素在文档中的状态和属性
+- Property 的值可以是不同的数据类型，取决于属性的类型
+- 通过访问 DOM 元素对象的属性，可以直接操作和修改元素的状态，例如 element.id 或 element.className
+
+总结
+
+- Attribute 是 HTML 标记中的属性，它们以字符串形式存储在 HTML 元素的标记中
+- Property 是 DOM 元素对象的属性，它们表示了元素在文档中的状态和属性，可以是不同的数据类型。
+- Attribute 始终是字符串，而 Property 的数据类型可以更广泛
+
+### 常见 DOM 操作
+
+```js
+// 创建新元素节点
+const newElement = document.createElement("div")
+// 创建文本节点
+const textNode = document.createTextNode("Hello, World")
+// 创建文档片段
+const fragment = document.createDocumentFragment()
+
+// 添加为子节点
+parentElement.appendChild(newElement)
+// 在参考节点之前插入
+parentElement.insertBefore(newElement, referenceElement)
+
+// 从父节点中移除子节点
+parentElement.removeChild(childElement)
+
+// 移动节点到新位置
+newParentElement.appendChild(childElement)
+
+// 复制节点
+const clone = originalNode.cloneNode(true)
+
+// 通过 id 查找元素
+const element = document.getElementById("myElement")
+// 使用 CSS 选择器查找元素
+const element = document.querySelector(".myClass")
+// 使用节点遍历方法查找节点
+const firstChild = parentElement.firstChild
+```
+
+### DOM2.0 事件传播机制
+
+- 事件捕获阶段: 当某个元素触发某个事件（如 onclick），顶层对象 document 就会发出一个事件流，随着 DOM 树的节点向目标元素节点流去，直到到达事件真正发生的目标元素。在这个过程中，事件相应的监听函数是不会被触发的。
+- 事件目标: 当到达目标元素之后，执行目标元素该事件相应的处理函数。如果没有绑定监听函数，那就不执行。
+- 事件冒泡: 从目标元素开始，往顶层元素传播。途中如果有节点绑定了相应的事件处理函数，这些函数都会被一次触发。如果想阻止事件起泡，可以使用 e.stopPropagation()（Firefox）或者 e.cancelBubble=true（IE）来组织事件的冒泡传播。
+
+### 事件冒泡和事件捕获的区别，如何阻止
+
+- 事件冒泡: 事件从触发事件的目标元素开始，逐级向上冒泡到 DOM 树的根节点
+- 事件捕获: 事件从 DOM 树的根节点开始，逐级向下捕获到触发事件的目标元素
+
+```js
+// addEventListener 第三个参数: true 为捕获, false 为冒泡, 默认 false
+
+btn.addEventListener(
+  "click",
+  function (event) {
+    console.log("按钮点击事件")
+    event.stopPropagation() // 阻止事件冒泡
+  },
+  false
+) // 事件冒泡
+```
+
+### 注册事件
+
+`addEventListener` 注册事件，该函数的第三个参数可以是布尔值，也可以是对象。对于布尔值 useCapture 参数来说，该参数默认值为 false ，useCapture 决定了注册的事件是捕获事件还是冒泡事件
+
+`stopPropagation` 是用来阻止事件冒泡的
+
+`preventDefault()`取消事件默认行为: a 链接默认跳转/`type=submit`默认提交表单/其它浏览器默认行为...
+
+```js
+node.addEventListener(
+  "click",
+  (event) => {
+    event.stopImmediatePropagation()
+    console.log("冒泡")
+  },
+  false
+)
+// 点击 node 只会执行上面的函数，该函数不会执行
+node.addEventListener(
+  "click",
+  (event) => {
+    console.log("捕获 ")
+  },
+  true
+)
+```
+
+### 事件代理
+
+要理解事件代理,首先要明白什么是事件冒泡: 当一个元素上的事件被触发的时候，比如说鼠标点击了一个按钮，同样的事件将会在那个元素的所有祖先元素中被触发。这一过程被称为事件冒泡。
+
+如果一个节点中的子节点是动态生成的，那么子节点需要注册事件的话应该注册在父节点上
+
+```html
+<ul id="ul">
+  <li>1</li>
+  <li>2</li>
+  <li>3</li>
+  <li>4</li>
+  <li>5</li>
+</ul>
+<script>
+  let ul = document.querySelector("#ul")
+  ul.addEventListener("click", (event) => {
+    console.log(event.target)
+  })
+</script>
+```
+
+### 获取元素位置
+
+```js
+// getBoundingClientRect
+const { left, top, right, bottom } = element.getBoundingClientRect()
+
+// offsetTop offsetLeft
+element.offsetTop
+element.offsetLeft
+
+// pageX pageY
+element.addEventListener("mousemove", function (event) {
+  console.log("鼠标的X坐标：" + event.pageX)
+  console.log("鼠标的Y坐标：" + event.pageY)
+})
+
+// clientX clientY
+element.addEventListener("mousemove", function (event) {
+  console.log("鼠标在视口中的X坐标：" + event.clientX)
+  console.log("鼠标在视口中的Y坐标：" + event.clientY)
+})
+```
+
+### document.write 和 innerHTML 的区别？
+
+- document.write 方法将内容直接写入到页面的当前位置，它会覆盖已存在的内容。如果它在页面加载后调用，它会覆盖整个页面内容，因此通常不建议在文档加载后使用它
+- innerHTML 是 DOM 元素的属性，可以用来设置或获取元素的 HTML 内容。它可以用于特定元素，而不会覆盖整个页面
