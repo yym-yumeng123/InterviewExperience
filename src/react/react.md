@@ -2,6 +2,15 @@
 outline: deep
 ---
 
+### 关于 Fiber 架构
+
+- Fiber 是 React 中一种新的架构, 它用于实现增量式的、可中断的虚拟 DOM diff 过程, Fiber 的目标是改进 React 的性能和用户体验, 使得 React 更加流畅
+- 在 React 的旧版本中, 虚拟 DOM diff 过程是一个递归的过程, 它会一直执行到完成, 期间是无法中断的. 这可能会导致长时间的 JS 执行, 从而阻塞主线程, 造成页面的卡顿和不流畅的用户体验
+- 为了解决这个问题, React 引入了 Fiber 架构, Fiber 将整个虚拟 DOM diff 过程分为多个小任务, 每个任务称为一个 Fiber 节点, 这些 Fiber 节点被组织成一个树的形状, 称为 Fiber 树.
+- Fiber 树可以被中断和恢复, 意味在执行 Fiber 树的 diff 过程中, 可以在任意时刻中断当前任务, 并优先执行其他任务, 可以使得应用程序更加灵活地响应用户的交互和其他优先级的任务, 提高性能和响应性
+- 通过 Fiber 架构, React 可以通过根据任务的优先级动态地调整任务的执行顺序, 从而更好的控制 js 的执行. 使得 React 应用程序可以在不阻塞主线程的情况下进行虚拟 DOM diff, 减少页面的卡顿和提高用户体验
+- 总而言之，Fiber 是 React 中一种新的架构，用于实现增量式的、可中断的虚拟 DOM diff 过程。它通过将 diff 过程分为多个小任务，并根据优先级动态地调整任务的执行顺序，提高 React 应用程序的性能和响应性
+
 ### SPA MPA
 
 - `SPA` 单页面应用
@@ -832,8 +841,6 @@ const propertyUpdated = { ...oldObj, property1: "newValue" }
 // Map
 const keyUpdated = new Map(oldMap).set("key1", "newValue")
 ```
-
-### 什么是 Fiber 协调引擎
 
 ### 路由原理
 
