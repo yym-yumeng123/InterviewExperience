@@ -34,6 +34,7 @@ export default defineConfig({
           { text: 'TypeScript', link: 'typescript/ts' },
           { text: 'Webpack', link: '/javascript/webpack' },
           {text: 'React', link: "react/react"},
+          {text: '自定义 Hooks', link: "react/hooks"},
           {text: 'Vue', link: "vue/vue"}
         ]
       },

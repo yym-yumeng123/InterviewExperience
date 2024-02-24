@@ -7,6 +7,30 @@ title: "HTML/CSS"
 
 ## HTML 知识点
 
+### Repaint 重绘 Reflow 回流
+
+`重绘（repaints）`是一个元素外观的改变所触发的浏览器行为，例如改变 vidibility、outline、背景色等属性。浏览器会根据元素的新属性重新绘制，使元素呈现新的外观。重绘不会带来重新布局，并不一定伴随回流。
+
+`回流（reflow）`布局或者几何属性需要改变就称为回流
+
+引起重绘和回流的一些操作
+
+- 当你增加、删除、修改 DOM 结点时，会导致 Reflow 或 Repaint
+- 当你移动 DOM 的位置，或是搞个动画的时候
+- 当你修改 CSS 样式的时候
+- 当你 Resize 窗口的时候（移动端没有这个问题），或是滚动的时候。
+- 当你修改网页的默认字体时
+  - 注：`display:none 会触发 reflow，而 visibility:hidden 只会触发 repaint`，因为没有发现位置变化。
+
+减少重绘和回流
+
+- 使用 `transform 替代 top`
+- 使用 `visibility 替换 display: none` ，因为前者只会引起重绘，后者会引发回流
+- 不要把节点的属性值放在一个循环里当成循环里的变量
+- 不要使用 `table 布局`，可能很小的一个小改动会造成整个 table 的重新布局
+- 动画实现的速度的选择，动画速度越快，回流次数越多，也可以选择使用 requestAnimationFrame
+- CSS 选择符从右往左匹配查找，避免节点层级过多
+
 ### doctype 的作用是什么？
 
 声明文档类型，告知浏览器用什么文档标准解析这个文档：
@@ -119,7 +143,7 @@ title: "HTML/CSS"
 3. get 最多提交 1k 数据, 浏览器限制; post 理论上无限制
 4. get 提交的数据在浏览器历史记录可以看到
 5. get 主要是拿数据; post 给数据
-6. get 请求一般会被缓存; post请求默认是不进行缓存的
+6. get 请求一般会被缓存; post 请求默认是不进行缓存的
 7. get 请求的参数会被保存在历史记录中; post 不会
 
 ## CSS 知识点
@@ -137,6 +161,55 @@ title: "HTML/CSS"
    - 脱离文档流: `浮动 绝对定位 fixed`
 4. 字体的高度由设计师给一个一个行高; 字和字通过基线对齐
 5. 多个 `inline-block` 元素之间有空格, 尽量不用 inline-block; 手动添加空格 `&nbsp;`
+
+### css 选择器的优先级, 权重计算方式
+
+1. !important 规则: 如果有!important 声明，那么该规则具有最高的优先级
+2. 特定性: 特定性值的大小来排序，特定性值较大的规则具有更高的优先级，权重计算方式如下
+   - 内联样式: 每个内联样式规则的特定性为 1000
+   - ID 选择器: 每个 ID 选择器的特定性为 100
+   - 类选择器、属性选择器和伪类选择器: 每个类选择器、属性选择器和伪类选择器的特定性为 10
+   - 元素选择器和伪元素选择器: 每个元素选择器和伪元素选择器的特定性为 1
+
+### css 属性的继承性
+
+**可继承的属性**
+
+- color
+- font
+- line-height
+- text-align
+- visibility
+
+**不可继承属性**
+
+- border
+- margin
+- padding
+- width
+- height
+- position
+- display
+
+### 画一条 0.5px 的线
+
+```html
+<html>
+  <head>
+    <style type="text/css">
+      .thin-line {
+        height: 1px; /* 设置线的高度为1像素 */
+        transform: scaleY(0.5); /* 使用scale缩放高度为0.5，模拟较细的线 */
+        transform-origin: 0 0; /* 设置变换的原点为左上角，确保线的位置正确 */
+        margin: 0; /* 可以根据需要调整上下外边距，以控制线的位置 */
+      }
+    </style>
+  </head>
+  <body>
+    <div class="thin-line"></div>
+  </body>
+</html>
+```
 
 ### 文字溢出省略效果
 
@@ -211,6 +284,10 @@ div 不是平面的,三维概念, 最下到最上层 (在浏览器通过颜色, 
 ### ::before 和 :after 双冒号和但冒号区别
 
 1. `::伪元素` | `:伪类`
+   - CSS3 伪类（Pseudo-classes）: 伪类用于选择文档中的特定元素，通常基于它们的状态、位置或属性
+   - `:hover :active :focus :firsy-child`
+   - CSS3 伪元素（Pseudo-elements）: 伪元素用于在文档中生成虚拟元素，通常用于添加样式或内容
+   - `::before ::after ::first-letter`
 2. ::before 元素之前; :after 元素之后(清除浮动)
 
 ### chrome 支持小于 12px 的文字
@@ -334,6 +411,7 @@ document.write(`<style>html{font-size:${pageWidth / 10}px}</style>`)
 
 - `height`: 元素的高度值
 - `line-height`: 每一行文字的高度, 文字换行, 盒子高度会增大
+  - line-height 用于控制文本行的垂直间距
   - `line-height为number`时,继承为直接继承,所以如果给下面的元素设置行高,等于字体大小乘以 number 值
   - `line-height:百分比`;先计算,在继承
 
@@ -372,11 +450,12 @@ vertical-align:top
 
 ### 让一个元素看不见?
 
-- `opacity: 0` 透明度为 0, 看不见, 但占位置; 取值范围 0-1; 继承父元素的 opactiy
+- `opacity: 0` 透明度为 0, 看不见, 但占位置; 取值范围 0-1; 继承父元素的 opactiy; 有点击事件
 - `transparent` 效果也是透明
 - `rgba(0, 0, 0, 0)` red green blue; a 表示透明度 0-1; 后代不会继承
-- `visibility: hidden` 元素消失, 占据原来的位置;
-- `display: none` 元素消失, 不占据位置;
+- `visibility: hidden` 元素消失, 占据原来的位置; 没有点击事件
+- `display: none` 元素消失, 不占据位置; 没有点击事件
+- `postion: absolute; top: -999px`: 不占位; 有点击事件
 
 ### 浮动元素 float
 
@@ -400,14 +479,21 @@ vertical-align:top
 - `fixed` 固定定位; 脱离文档流; 参照物为视窗; 遮罩使用
 - `static` 没有定位
 
+### overflow 不同值
+
+- `visible` 默认值
+- `hidden` 内容溢出容器, 会被隐藏, 不可见
+- `scroll` 内容溢出容器, 显示滚动条
+- `auto` 内容溢出容器, 显示滚动条; 未溢出, 不显示滚动条
+
 ### BFC (block formatting context) 块级格式化上下文
 
 > 浮动、绝对定位、非块盒的块容器(例如: inline-blocks table-cells)和 `overflow != visible` 的块盒会为它们的内容建立一个新的块格式上下文
 
 BFC 特性
 
-- 在一个 BFC 中, 内部的 Box 会在垂直方向，一个接一个地放置。
 - BFC 就是页面上的一个隔离的独立容器，容器里面的子元素不会影响到外面的元素。反之也如此
+- 在一个 BFC 中, 内部的 Box 会在垂直方向，一个接一个地放置。
 - 同一个块级格式化上下文中的相邻块级盒之间的 `竖直margin` 会合并
 - 可以解决上下 margin 合并问题 `父子元素margin合并`
 
@@ -432,6 +518,12 @@ BFC 功能
 
 只有 `display: flow-root` 触发 BFC 没有副作用, `浮动; overflow: hidden; 定位` 等都有自己的特性
 :::
+
+### Margin 塌陷问题如何解决?
+
+1. margin 塌陷问题: 符合 css 外边距合并规则
+2. 触发 BFC, 一个独立的渲染区域, 与外部元素不会互相影响
+3. 上面触发 BFC 方式随便选一个
 
 ### 理解 font-size line-height
 
@@ -572,3 +664,68 @@ scrollHeight = 内容实际尺寸 + padding
   console.info("盒子3的scrollHeight", box3.scrollHeight) // 340
 </script>
 ```
+
+### 渐进增强 优雅降级
+
+渐进增强: 从基本的, 核心的功能开始, 然后逐渐的增强用户体验
+
+优雅降级: 首先构建功能丰富的版本, 然后在较低能力的浏览器提供一种相对简化的版本
+
+### iframe 有哪些优点和缺点
+
+`<iframe>` 内联框架是 HTML 的一个标签, 用于在当前页面中嵌入另一个页面
+
+优点:
+
+1. 分离内容: `<iframe>` 允许将不同来源或不同内容的页面嵌套在一起。这有助于将内容分隔开，允许不同团队或服务提供商提供各自的内容。
+2. 实现跨域通信: `<iframe>` 可用于实现跨域通信，例如在父页面和嵌套的 `<iframe>` 页面之间传递数据，从而创建丰富的嵌入式应用程序。
+3. 安全性: `<iframe>` 可以提高安全性，因为它可以将来自不受信任的来源的内容隔离在一个独立的沙盒中，以防止对主页面的恶意攻击。
+4. 无需刷新：`<iframe>` 允许在不刷新整个页面的情况下加载新内容，这对于实现动态加载内容或应用程序非常有用。
+
+缺点:
+
+1. 性能问题: 每个 `<iframe>` 都会加载一个新页面，这可能会导致性能问题，特别是在多个嵌套的 `<iframe>` 页面存在时。
+2. 可访问性问题: `<iframe>` 可能会导致可访问性问题，因为屏幕阅读器可能不会正确处理嵌套的页面。确保提供替代文本和合适的 ARIA 标记以提高可访问性。
+3. 不利于 SEO: 搜索引擎通常不会索引嵌套在 `<iframe>` 中的内容，这可能对网站的搜索引擎优化（SEO）产生负面影响。
+4. 兼容性问题：某些浏览器和设备可能不正确支持 `<iframe>`，或者可能需要特殊处理以确保它们正确显示
+
+使用场景:
+
+- 嵌入外部内容：例如，将 YouTube 视频、Google 地图或社交媒体小部件嵌入网页。
+- 分离组件：将不同部分的网页分开以进行模块化开发。这对于大型应用程序或团队协作非常有用。
+- 安全沙盒：将不受信任的内容隔离在一个沙盒中，以提高安全性。
+- 跨域通信：在不同源的页面之间进行数据交换，以创建富客户端应用程序。
+
+### css3 新特性
+
+1. 圆角边框: `border-radius`
+2. 阴影: `box-shadow`
+3. 渐变: `linear-gradient`
+4. 多列布局: `column-count` 和 `column-width`
+5. 变换: `transform`
+6. 过渡: `transition`
+7. 动画: `@keyframes` 和 `animation`
+8. 透明度: `opacity`
+9. 自定义属性 `var()`
+
+### transition 和 animation 的区别？
+
+transition 和 animation 是 CSS 用于创建动画效果的两种不同的属性
+
+- 使用 `transition` 可以创建简单的状态过渡效果，适用于鼠标悬停、焦点等触发的状态变化
+- 使用 `animation` 可以创建更复杂的动画，包括关键帧、持续时间、循环和更精细的控制。它适用于需要更多控制和复杂度的动画场景。
+
+### flex 弹性布局
+
+- flex-direction: 'row' | 'column' | 'row-reverse' | 'column-reverse' 方向
+- flex-wrap: 'wrap' | 'nowrap' 换行
+- flex-flow 上面两个的简写
+- justify-content: 'center' | 'space-between' | 'space-around' | 'felx-start' | 'flex-end' 主轴方向的对齐方式
+- align-items: 'center' | 'stretch' | 'flex-start' | 'flex-end' | 'baseline' 侧轴对齐方式
+- align-content: 多行/列内容对齐方式
+- flex-grow: 增长比例(空间过多时)
+- flwx-shrink 收缩比例(空间不够时)
+- flex-basis 默认大小, 一般不写
+- flex 上面三个的缩写
+- order 改变的展示顺序
+- align-self 自身的对齐方式, 已经对齐的情况下, 自己选择自己的对齐方式

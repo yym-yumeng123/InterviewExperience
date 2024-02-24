@@ -346,47 +346,56 @@ React 引入了 key 这个特殊属性，当有子元素列表中的元素有这
 
 ### React Hooks
 
-- `useState`
-  - 从 React 18 版本起，无论是在事件处理函数、异步回调，还是 setTimeout 里的多个 state 更新，默认都会被自动批处理，只触发一次重新渲染
-- `useEffect`
-- `useContext`
-- `useRef`
-- 需要性能优化, 减少不必要渲染 `useMemo useCallback`
-  - `useMemo` 的功能是为工厂函数返回一个记忆化的计算值, 在两次渲染之前, 只有依赖值数组中的依赖值有变化时, 该 Hook 才会调用工厂函数重新计算, 将新的返回值记忆化并返回给组件
-  - `useCallback` 会把作为第一个参数的回调函数返回给组件, 只要第二个参数依赖值数组的依赖项不改变, 就会保证一直返回同一个回调函数, 而不是新建一个函数, 保证了回调函数的闭包也是不变的, 相反, 依赖项改变, useCallbak 才会更新回调函数及其闭包
-- 处理复杂 state: `useReducer`
-- 需要封装命令, 对外提供命令式接口 `useRef + useImperativeHandle`
-- 用户操作相关, 受到异步渲染拖累卡顿时, useDeferredvalue useTransition
+> React 函数组件中, 每一次 UI 的变化, 都是通过执行整个函数来完成的
+
+> 函数组件: 当某个状态发生变化时, 我要做什么
+
+#### 优点
+
+- 逻辑复用
+- 关注点分离
+- Class 生命周期中需要耦合的事件却被分散到不同的生命周期，如设置订阅和取消订阅, 而完全不相关的代码却在同一个生命周期中，而**Hook 将组件中相互关联的部分拆分成更小的函数（比如设置订阅或请求数据）**，而并非强制按照生命周期划分
+
+#### 使用规则
+
+- 只能在函数组件的`顶级作用域使用`
+  - Hooks 不能在 循环 条件判断 嵌套函数内执行, 必须是顶层
+  - 按顺序被执行
+- 只能在函数组件或其它 Hooks 中使用
+  - 函数组件
+  - 自定义 Hooks
+
+#### useState 函数有维持状态的能力
+
+- state 永远不要保存可以`通过计算得到值`, 容易造成一致性问题;
+  - 从 props 传递过来的值
+  - 从 URL 中读取的值
+  - 从 cookie, localStorage 中读取的值
+- 从 React 18 版本起，无论是在事件处理函数、异步回调，还是 setTimeout 里的多个 state 更新，默认都会被自动批处理，只触发一次重新渲染
 
 ```jsx
-// 调用 state 更新函数后, 组件的更新是异步的, 不会马上执行
-// React18 为更新 state 加入 自动批处理 功能, 多个 state 更新函数调用会被合并到一次重新渲染中
-const [showAdd, setShowAdd] = useState(false)
-// 更新函数使用最新的 state 来计算新 state 值
-setShowAdd((prevState) => !prevState)
-setTodoList((prevState) => {
-  return [...prevState, aNewTodoItem]
-})
+import React, { useState } from "react"
 
-// useReducer 使用
-function reducer(state, action) {
-  switch (action.type) {
-    case "show":
-      return true
-    default:
-      return false
-  }
+function Example() {
+  // 调用 state 更新函数后, 组件的更新是异步的, 不会马上执行
+  // React18 为更新 state 加入 自动批处理 功能, 多个 state 更新函数调用会被合并到一次重新渲染中
+  // 创建一个保存 count 的 state，并给初始值 0
+  const [count, setCount] = useState(0)
+
+  return (
+    <div>
+      <p>{count}</p>
+      <button onClick={() => setCount(count + 1)}>+</button>
+    </div>
+  )
 }
-const [showAdd, dispatch] = useReducer(reducer, false)
-dispatch({ type: "show" })
-
-// useRef 可变值
-const myRef = useRef(null)
-// 读取可变值
-const value = myRef.current
 ```
 
-在 React 中，大量行为都可以被称作副作用，比如挂载、更新、卸载组件，事件处理，添加定时器，修改真实 DOM，请求远程数据，在 console 中打印调试信息，等等
+#### useEffect 执行副作用
+
+useEffect 是每次组件 render 完后判断依赖并执行
+
+在 React 中，大量行为都可以被称作副作用, 比如挂载、更新、卸载组件，事件处理，添加定时器，修改真实 DOM，请求远程数据，在 console 中打印调试信息，等等
 
 ```jsx
 // 作为组件函数体的一部分, 每次组件渲染时都会被调用
@@ -406,11 +415,239 @@ useEffect(() => {
 // 如果不清理定时器会怎样？如果是在更新阶段，组件就可能会有多个定时器在跑，会产生竞争条件
 // 如果组件已被卸载，那么有可能导致内存泄露
 useEffect(() => {
-  /* 省略 */ return () => {
+  /* 省略 */
+  return () => {
     /* 省略 */
   }
 }, [status])
 ```
+
+#### useLayoutEffect 布局副作用
+
+1. `useEffect` 在浏览器渲染`完成后`执行
+2. `useLayoutEffect` 在浏览器渲染`完成前`执行
+3. `useLayoutEffect` 总是比 `useEffect` 先执行
+4. 使用 `useLayoutEffect` 里的任务最好影响了 Layout
+5. 最好优先使用 `useEffect`
+6. 它的副作用执行时机一般早于 useEffect，是在真实 DOM 变更之后同步执行的
+
+#### useMemo 缓存计算结果
+
+如果某个数据是通过其它数据计算得到的，那么只有当用到的数据，也就是依赖的数据发生变化的时候，才应该需要重新计算
+
+- 避免重新计算
+- 避免子组件重复渲染
+- 为工厂函数返回一个记忆化的计算值, 在两次渲染之前, 只有依赖值数组中的依赖值有变化时, 该 Hook 才会调用工厂函数重新计算, 将新的返回值记忆化并返回给组件
+
+```js
+// fn 产生所需数据的一个计算函数
+// 通常来说，fn 会使用  deps 中声明的一些变量来生成一个结果，用来渲染出最终的 UI
+useMemo(fn, deps)
+
+// 执行成本较高的计算结果存入缓存，通过减少重复计算来提升组件性能
+// 如果后续其他 state 发生了改变，但 num 的值保持 '40' 不变，则 useMemo 不会执行工厂函数，直接返回缓存中的 102334155 ，减少了组件性能损耗
+const sum = useMemo(() => {
+  const n = parseInt(num, 10)
+  return fibonacci(n)
+}, [num])
+
+// 使用 userMemo 缓存计算的结果
+const usersToShow = useMemo(() => {
+  if (!users) return null
+  return users.data.filter((user) => user.first_name.includes(searchKey))
+}, [users, searchKey])
+```
+
+#### useCallback 缓存回调函数
+
+- 对于原生的 DOM 节点，比如 button、input 等，我们是不用担心重新渲染的, 不写 useCallback, 也不会有影响
+- 使用自定义组件, 回调函数应用到 useCallback 封装
+- 会把作为第一个参数的回调函数返回给组件, 只要第二个参数依赖值数组的依赖项不改变, 就会保证一直返回同一个回调函数, 而不是新建一个函数, 保证了回调函数的闭包也是不变的, 相反, 依赖项改变, useCallbak 才会更新回调函数及其闭包
+
+```js
+function Counter() {
+  const [count, setCount] = useState(0)
+  // 只有当 count 发生变化时，我们才需要重新定一个回调函数
+  const handleIncrement = useCallback(() => setCount(count + 1), [count])
+  // ...
+  return <button onClick={handleIncrement}>+</button>
+}
+
+// useCallback 是 useMemo 的一个马甲
+const memoizedFunc = useCallback(() => {
+  /*省略*/
+}, [a, b])
+const memoizedFunc = useMemo(() => {
+  // 返回一个函数作为缓存结果
+  return () => {
+    // 在这里进行事件处理
+  }
+}, [dep1, dep2])
+```
+
+#### useRef 在多次渲染之间共享数据
+
+- useRef 保存的数据一般是和 UI 的渲染无关的，因此当 ref 的值发生变化时，是不会触发组件的重新渲染的
+- 保存某个 DOM 节点的引用 => 结合 React 的 ref 属性和 useRef 这个 Hook
+
+```js
+// useRef 可变值
+const myRef = useRef(null)
+// 读取可变值
+const value = myRef.current
+```
+
+#### forwardRef
+
+如果你的函数组件接受别人传过来的 `ref`, 必须把自己用 `forwardRef` 包起来
+
+```js
+function App() {
+  const buttonRef = useRef(null)
+  return (
+    <div className='App'>
+      <Button2 ref={buttonRef}>按钮</Button2>
+    </div>
+  )
+}
+// 由于 props 里面不包含 ref, 需要 forwardRef
+const Button2 = React.forwardRef((props, ref) => {
+  return <button className='red' ref={ref} {...props} />
+})
+```
+
+#### useImperativeHandle
+
+- 对 ref 进行 设置, 也就是 `setRef` 的意思, 用于自定义 ref
+
+```js
+function App() {
+  const buttonRef = useRef(null)
+  useEffect(() => {
+    console.log(buttonRef.current)
+  })
+  return (
+    <div className='App'>
+      <Button2 ref={buttonRef}>按钮</Button2>
+      <button
+        className='close'
+        onClick={() => {
+          console.log(buttonRef)
+          buttonRef.current.x()
+        }}
+      >
+        x
+      </button>
+    </div>
+  )
+}
+
+const Button2 = React.forwardRef((props, ref) => {
+  const realButton = createRef(null)
+  const setRef = useImperativeHandle
+  setRef(ref, () => {
+    return {
+      x: () => {
+        realButton.current.remove()
+      },
+      realButton: realButton,
+    }
+  })
+  return <button ref={realButton} {...props} />
+})
+```
+
+#### useContext 定义全局状态
+
+Context 提供了一个方便在多个组件之间共享数据的机制
+
+```js
+// 1. 先创建一个上下文
+const MyContext = React.createContext(initialValue)
+
+// 2. Context.Provider 作为根组件
+// 创建一个 Theme 的 Context
+const ThemeContext = React.createContext(themes.light)
+function App() {
+  // 整个应用使用 ThemeContext.Provider 作为根组件
+  return (
+    // 使用 themes.dark 作为当前 Context
+    <ThemeContext.Provider value={themes.dark}>
+      <Toolbar />
+    </ThemeContext.Provider>
+  )
+}
+
+// 3. 消费上下文
+const value = useContext(MyContext)
+```
+
+#### useReducer 更复杂的 useState
+
+使用 `useReducer` 分 4 步走
+
+- 创建初始值 `initialState`
+- 创建所有操作 `reducer(state, action)`
+- 使用 `useReducer(reducer, initialState)` 得到读写操作
+- 调用`写 ({type: 'action'})`
+- 总结: `useReducer 是复杂点的 useState`
+
+```js
+import React from "react"
+// 1. 创建初始值
+const initial = {
+  n: 1,
+}
+/**
+ * 2. 创建操作 reducer
+ * state: 旧的状态
+ * action: 动作
+ */
+const reducer = (state, action) => {
+  if (action.type === "add") {
+    return { n: state.n + action.number }
+  } else if (action.type === "multi") {
+    return { n: state.n * action.number }
+  } else {
+    throw new Error("unknown type")
+  }
+}
+
+export default function App() {
+  /**
+   * 3. 是有 useReducer
+   * reducer 所有操作
+   * initial 初始值
+   * return [state, dispatch] 读/写操作
+   */
+  const [state, dispatch] = React.useReducer(reducer, initial)
+  // 4. 写入 action
+  const onClickAdd = () => {
+    dispatch({
+      type: "add",
+      number: 1,
+    })
+  }
+  const onClickMulti = () => {
+    dispatch({
+      type: "multi",
+      number: 2,
+    })
+  }
+  return (
+    <div>
+      <h1>n: {state.n}</h1>
+      <button onClick={onClickAdd}>add</button>
+      <button onClick={onClickMulti}>multi</button>
+    </div>
+  )
+}
+```
+
+#### 自定义 Hooks
+
+- 声明一个名字以 `use` 开头的函数, 比如 useCounter, 这个函数在形式上和普通的 JavaScript 函数没有任何区别，你可以传递任意参数给这个 Hook，也可以返回任何值。
+- 函数内部一定调用了其它的 Hooks, 可以是内置 Hooks, 也可以是其它自定义 Hooks.
 
 `useLayoutEffect`。它的副作用执行时机一般早于 useEffect，是在真实 DOM 变更之后同步执行的
 
@@ -426,24 +663,7 @@ const sum = useMemo(() => {
   const n = parseInt(num, 10)
   return fibonacci(n)
 }, [num])
-
-// useCallback 是 useMemo 的一个马甲
-const memoizedFunc = useCallback(() => {
-  /*省略*/
-}, [a, b])
-const memoizedFunc = useMemo(
-  () => () => {
-    /*省略*/
-  },
-  [a, b]
-)
 ```
-
-Hooks 使用规则
-
-- 第一，只能在 React 的函数组件中调用 Hooks
-- 第二，只能在组件函数的最顶层调用 Hooks
-- 第三, 不能在循环、条件分支中或者任何 return 语句之后调用 Hooks
 
 ### React 合成事件
 
@@ -668,32 +888,6 @@ MVC 有一个巨大的缺陷就是控制器承担的责任太大了，随着项�
 
 通过 ViewModel 将视图中的状态和用户的行为分离出一个抽象，这才是 MVVM 的精髓
 
-### Hooks
-
-#### useData 获取数据
-
-```js
-// "竞态条件"：两个不同的请求 "相互竞争"，并以与你预期不符的顺序返回。
-function useData(url) {
-  const [data, setData] = useState(null)
-  useEffect(() => {
-    // 添加一个 清理函数 来忽略较早的返回结果
-    let ignore = false
-    fetch(url)
-      .then((response) => response.json())
-      .then((json) => {
-        if (!ignore) {
-          setData(json)
-        }
-      })
-    return () => {
-      ignore = true
-    }
-  }, [url])
-  return data
-}
-```
-
 ### 优先级
 
 - 事件优先级: 按照用户事件的交互紧急程度，划分的优先级
@@ -856,18 +1050,6 @@ function FiberNode(
   this.alternate = null
 }
 ```
-
-## Hook
-
-### 解决了什么问题
-
-1. 逻辑复用
-2. Class 生命周期中需要耦合的事件却被分散到不同的生命周期，如设置订阅和取消订阅, 而完全不相关的代码却在同一个生命周期中，而**Hook 将组件中相互关联的部分拆分成更小的函数（比如设置订阅或请求数据）**，而并非强制按照生命周期划分
-
-### 规则
-
-- 只能用在`React 的函数组件`和`自定义 Hook`中。
-- 只能在`函数最外层`调用 ，在循环、条件判断或者子函数中调用都是不允许的
 
 ## ReactElement, Fiber, DOM 三者的关系
 
@@ -1328,11 +1510,10 @@ class ErrorBoundary extends React.Component {
 }
 
 // 错误边界使用
-<ErrorBoundary>
+;<ErrorBoundary>
   <MyWidget />
 </ErrorBoundary>
 ```
-
 
 1. 错误边界目前只在类组件中实现了, 没有在 hooks 中实现: 因为 Error Boundaries 的实现借助了 this.setState 可以传递 callback 的特性, useState 无法传入回调, 所以无法完全对标
 2. 错误边界无法捕获以下四种场景中产生的错误: 仅处理渲染子组件期间的同步错误
