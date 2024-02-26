@@ -2,6 +2,336 @@
 outline: deep
 ---
 
+## 计算机网络
+
+### OSI 七层网络模型
+
+- Please | 物理层（Physical Layer）
+- Do | 数据链路层（Data Link Layer）
+- Not | 网络层（Network Layer）
+- Tell （the）| 传输层（Transport Layer）
+- Secret | 会话层（Session Layer）
+- Password （to）| 表示层（Presentation Layer）
+- Anyone | 应用层（Application Layer）
+
+### HTTP 请求方式
+
+- GET: 用于获取资源，通过 URL 传递参数，请求的结果会被缓存，可以被书签保存，不适合传输敏感信息
+- POST: 用于提交数据，将数据放在请求体中发送给服务器，请求的结果不会被缓存
+- PUT: 用于更新资源，将数据放在请求体中发送给服务器，通常用于更新整个资源
+- DELETE: 用于删除资源，将数据放在请求体中发送给服务器，用于删除指定的资源
+- PATCH: 用于部分更新资源，将数据放在请求体中发送给服务器，通常用于更新资源的部分属性
+
+### RESTful 规范
+
+使用语义化的 URL 来表示资源的层级关系和操作，如`/users` 表示用户资源，`/users/{id}`表示具体的用户
+
+- `资源`: 将系统中的实体抽象为资源，每个资源都有一个唯一的标识符（URI）
+- `HTTP 方法`: 使用 HTTP 请求方式来操作资源，如 GET、POST、PUT、DELETE 等
+- `状态码`: 使用 HTTP 状态码来表示请求的结果，如 200 表示成功，404 表示资源不存在等
+- `无状态`: 每个请求都是独立的，服务器不保存客户端的状态信息，客户端需要在请求中携带所有必要的信息
+
+### Cache-Control 的取值
+
+`Cache-Control` 指令可以单独或组合使用，以定义特定资源的缓存策略
+
+1. `no-store`: 禁止缓存。表示不应存储请求或响应的任何部分
+2. `no-cache`: 需要重新验证缓存。客户端需要向服务器发送一个请求来确认缓存的有效性
+3. `max-age=<seconds>`: 指定资源在缓存中的最大存储时间，单位为秒
+4. `public`: 表示响应可以被任何缓存（包括代理服务器）缓存，即响应是公共资源。
+5. `private`: 表示响应只能被浏览器缓存，不允许代理服务器缓存。适用于包含用户特定信息的响应。
+
+### 常见 HTTP 状态码
+
+状态码表示了响应的一个状态，可以让我们清晰的了解到这一次请求是成功还是失败，如果失败的话，是什么原因导致的，当然状态码也是用于传达语义的。如果胡乱使用状态码，那么它存在的意义就没有了。
+
+- 2xx 代表成功
+  - `200 ok 请求成功`
+  - `201 Create` 请求成功, 并在服务器创建了新的资源
+  - `204 no content` 请求成功, 但没有数据返回
+  - `206 partial content` 范围请求
+- 3xx 重定向
+  - `301 永久性重定向` 资源被分配到新的`URL`
+  - `302 临时性重定向` 资源临时被分配到新的 URI
+  - `303` 资源存在另一个 URL, 使用 GET 获取资源
+  - `304` 服务器允许访问资源, 但因发生请求未满足条件的情况
+- 4xx 客户端错误
+  - `400 bad request` 请求存在语法错误
+  - `401 Unauthorized` 请求需要通过 http 认证
+  - `403 Forbidden` 请求访问资源被拒绝
+  - `404 Not Found` 服务器上找不到资源
+  - `405 Method Not Allowed` 请求方法不被允许
+- 5xx 服务端错误
+  - `500 Internal Server Error` 服务器端在执行请求时发生了错误
+  - `501` 服务器不支持当前请求的某个功能
+  - `503 Service Unavailable` 服务器处于停机维护, 无法处理请求
+
+### Http 和 Https 的区别
+
+区别在于安全性和数据传输方式上，HTTPS 比 HTTP 更加安全，适合用于保护网站用户的隐私和安全，如银行网站、电子商务网站等
+
+- 安全性: HTTP 协议传输的数据都是未加密的，也就是明文的，因此使用 HTTP 协议传输的数据可以被任何抓包工具截取并查看。而 HTTPS 协议是由 SSL+HTTP 协议构建的可进行加密传输、身份认证的网络协议，更为安全
+- 数据传输方式: HTTP 协议的端口号是 `80`，HTTPS 协议的端口号是 `443`
+- 网址导航栏显示: 使用 HTTP 协议的网站导航栏显示的是"http://"，而使用 HTTPS 协议的网站导航栏显示的是"https://"
+- 证书: HTTPS 需要到 CA 申请证书，一般免费证书较少，因而需要一定费用
+- 网络速度: HTTP 协议比 HTTPS 协议快，因为 HTTPS 协议需要进行加密和解密的过程
+
+### Cookie 为了解决什么问题
+
+- 定义: Cookie 是一种存储在用户浏览器中的小文件，用于存储网站的一些信息。通过 Cookie，服务器可以识别用户并保持会话状态，实现会话保持。用户再次访问网站时，浏览器会将 Cookie 发送给服务器，以便服务器可以识别用户并提供个性化的服务，存储上限为 4KB
+- 解决问题: Cookie 诞生的主要目的是为了解决 HTTP 协议的无状态性问题。HTTP 协议是一种无状态的协议，即服务器无法识别不同的用户或跟踪用户的状态。这导致了一些问题，比如无法保持用户的登录状态、无法跟踪用户的购物车内容等。
+
+### 什么是跨域? 如何解决?
+
+- 因为浏览器出于安全考虑，有`同源策略`
+  - 如果`协议、域名或者端口`有一个不同就是跨域
+- 主要是用来防止 CSRF(跨站点请求伪造) 攻击的。简单点说，CSRF 攻击是利用用户的登录态发起恶意请求
+
+**解决方法:**
+
+1. jsonp
+
+JSONP 的原理很简单，就是利用 `<script> 标签没有跨域限制的漏洞。通过 <script> 标签指向一个需要访问的地址并提供一个回调函数来接收数据`
+
+```js
+<script src="http://domain/api?param1=a&param2=b&callback=jsonp"></script>
+<script>
+    function jsonp(data) {
+    	console.log(data)
+	}
+</script>
+```
+
+2. CORS 跨域资源请求
+
+   - CORS 需要浏览器和后端同时支持。IE 8 和 9 需要通过 XDomainRequest 来实现
+   - 服务端设置 `Access-Control-Allow-Origin` 就可以开启 CORS
+
+3. document.domain
+
+   - 该方式只能用于`二级域名相同的情况下`，比如 a.test.com 和 b.test.com 适用于该方式。
+   - 只需要给页面添加 `document.domain = 'test.com'` 表示二级域名都相同就可以实现跨域
+
+4. postMessage
+   - 方式通常用于获取嵌入页面中的第三方页面数据。一个页面发送消息，另一个页面判断来源并接收消息
+
+```js
+// 发送消息端
+window.parent.postMessage("message", "http://test.com")
+// 接收消息端
+var mc = new MessageChannel()
+mc.addEventListener("message", (event) => {
+  var origin = event.origin || event.originalEvent.origin
+  if (origin === "http://test.com") {
+    console.log("验证通过")
+  }
+})
+```
+
+### XSS 攻击是什么?
+
+攻击者想尽一切办法将可以执行的代码注入到网页中, 分为两类：`持久型和非持久型。`
+
+- `持久型`也就是攻击的代码被服务端写入进数据库中，这种攻击危害性很大，因为如果网站访问量很大的话，就会导致大量正常访问页面的用户都受到攻击。对于评论功能来说，就得防范持久型 XSS 攻击
+- `非持久性`: 一般通过修改 URL 参数的方式加入攻击代码，诱导用户访问链接从而进行攻击
+  - 防御 1: `转义字符`
+  - 防御 2: CSP 本质上就是建立白名单，开发者明确告诉浏览器哪些外部资源可以加载和执行
+    - 设置 HTTP Header 中的 Content-Security-Policy
+    - 设置 meta 标签的方式 `<meta http-equiv="Content-Security-Policy">`
+
+```http
+# 只允许加载本站资源
+Content-Security-Policy: default-src ‘self’
+
+# 只允许加载 HTTPS 协议图片
+Content-Security-Policy: img-src https://*
+
+# 允许加载任何来源框架
+Content-Security-Policy: child-src 'none'
+```
+
+### 什么是点击劫持?
+
+是一种视觉欺骗的攻击手段。攻击者将需要攻击的网站通过 `iframe` 嵌套的方式嵌入自己的网页中，并将 `iframe` 设置为透明，在页面中透出一个按钮诱导用户点击
+
+- `X-FRAME-OPTIONS` 是一个 HTTP 响应头，在现代浏览器有一个很好的支持。这个 HTTP 响应头 就是为了防御用 iframe 嵌套的点击劫持攻击。
+- JS 防御
+
+```js
+<head>
+  <style id="click-jack">
+    html {
+      display: none !important;
+    }
+  </style>
+</head>
+<body>
+  <script>
+    if (self == top) {
+      var style = document.getElementById('click-jack')
+      document.body.removeChild(style)
+    } else {
+      top.location = self.location
+    }
+  </script>
+</body>
+```
+
+### 什么是 CSRF ?
+
+跨站请求伪造。原理就是攻击者构造出一个后端请求地址，诱导用户点击或者通过某些途径自动发起请求。如果用户是在登录状态下的话，后端就以为是用户在操作，从而进行相应的逻辑
+
+- 同源策略: 浏览器实施同源策略，限制了跨域请求的执行
+- Get 请求不对数据进行修改
+- 不让第三方网站访问到用户 Cookie
+- 阻止第三方网站请求接口
+- 请求时附带验证信息，比如验证码或者 Token
+
+### 什么是中间人攻击?
+
+是攻击方同时与服务端和客户端建立起了连接，并让对方认为连接是安全的，但是实际上整个通信过程都被攻击者控制了。攻击者不仅能获得双方的通信信息，还能修改通信信息
+
+- 不建议使用公共的 Wi-Fi，因为很可能就会发生中间人攻击的情况
+- 只需要增加一个安全通道来传输信息。HTTPS 就可以用来防御中间人攻
+
+### Ajax 的定义及优缺点
+
+`Ajax（Asynchronous JavaScript and XML）`是一种用于在后台与服务器进行异步通信的技术。它使用 JavaScript 和 XML（现在通常使用 JSON）来传输数据，而无需刷新整个页面。
+
+**优点:**
+
+- 异步通信：Ajax 允许在后台与服务器进行异步通信，可以在不刷新整个页面的情况下更新部分页面内容，提供更好的用户体验。
+- 减少带宽使用：由于只更新部分页面内容，而不是整个页面，因此可以减少对服务器和网络带宽的需求。
+- 提高页面加载速度：通过异步加载数据，可以提高页面加载速度，减少用户等待时间。
+- 支持多种数据格式：Ajax 不仅支持 XML，还支持 JSON 等多种数据格式，使数据的传输更加灵活和高效。
+
+**缺点:**
+
+- 对搜索引擎不友好：搜索引擎很难获取到完整的页面内容，影响页面的搜索引擎优化（SEO）。
+- 不支持跨域请求：浏览器同源策略限制，Ajax 请求通常只能发送到与当前页面同源的服务器，不支持跨域请求。
+- 安全性问题：如果不正确处理 Ajax 请求，可能会导致安全漏洞，如 XSS 和 CSRF 等。
+
+### 封装一个 ajax 请求方法
+
+```js
+function ajaxRequest({ url, method, data, callback }) {
+  const xhr = new XMLHttpRequest()
+
+  xhr.open(method, url, true)
+
+  xhr.onload = function () {
+    if (xhr.status === 200) {
+      const response = JSON.parse(xhr.responseText)
+      callback(null, response)
+    } else {
+      callback("请求失败：" + xhr.status, null)
+    }
+  }
+
+  xhr.onerror = function () {
+    callback("请求错误", null)
+  }
+
+  xhr.send(data)
+}
+```
+
+### Fetch API
+
+```js
+fetch("https://api.example.com/data") // 发起GET请求
+  .then((response) => {
+    if (!response.ok) {
+      throw new Error("Network response was not ok")
+    }
+    return response.json() // 解析响应为JSON
+  })
+  .then((data) => {
+    // 在这里处理从服务器返回的数据console.log(data);
+  })
+  .catch((error) => {
+    // 处理任何网络请求错误console.error('Fetch error:', error);
+  })
+
+fetch("https://api.example.com/data", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    Authorization: "Bearer YourAccessToken",
+  },
+  body: JSON.stringify({ key: "value" }), // 将数据发送到服务器
+})
+  .then((response) => {
+    // 处理响应
+  })
+  .catch((error) => {
+    // 处理错误
+  })
+```
+
+### fetch 与 XMLHttpRequest 的区别
+
+1. XMLHttpRequest 是早期的技术，它使用回调函数来处理请求和响应; Fetch API 使用基于 Promise 的 API，更现代、直观和易于使用。它支持使用 async/await 来处理异步操作，使代码更清晰。
+2. XMLHttpRequest 使用了一种事件驱动的编程模型, `onload onerror onreadystatechange` 等; Fetch API 使用 Promise 对象，通过链式的 .then() 和 .catch() 方法来处理请求和响应
+3. XMLHttpRequest 使用单独的对象来表示请求和响应，你需要分别创建 XMLHttpRequest 对象和 XMLHttpResponse 对象; Fetch API 使用 Request 和 Response 对象，更一致和易于操作，这两种对象都遵循同样的标准
+4. XMLHttpRequest 需要在服务器端进行额外的配置来处理跨域请求; Fetch API 默认支持跨域请求，可以通过 CORS 头部来控制跨域访问
+5. XMLHttpRequest 不提供原生的取消请求的机制，但你可以通过中断请求来模拟取消; Fetch API 支持 AbortController 对象，用于取消请求。
+
+### axios 中断请求的方法
+
+从 v0.22.0 开始，Axios 支持以 fetch API 方式—— `AbortController` 取消请求
+
+```js
+const controller = new AbortController()
+
+axios
+  .get("/foo/bar", {
+    signal: controller.signal,
+  })
+  .then(function (response) {
+    //...
+  })
+// 取消请求
+controller.abort()
+```
+
+还可以使用 cancel token 取消一个请求; 此 API 从 v0.22.0 开始已被弃用，不应在新项目中使用
+
+```js
+const CancelToken = axios.CancelToken
+const source = CancelToken.source()
+
+axios
+  .get("/user/12345", {
+    cancelToken: source.token,
+  })
+  .catch(function (thrown) {
+    if (axios.isCancel(thrown)) {
+      console.log("Request canceled", thrown.message)
+    } else {
+      // 处理错误
+    }
+  })
+
+axios.post(
+  "/user/12345",
+  {
+    name: "new name",
+  },
+  {
+    cancelToken: source.token,
+  }
+)
+
+// 取消请求（message 参数是可选的）
+source.cancel("Operation canceled by the user.")
+```
+
+### 请求会发送 2 次的原因
+
+1. `Preflight Requests (CORS)`: 跨源资源共享（CORS）是一种安全机制，用于控制在不同源（域名、协议、端口）之间的资源请求。当你通过 Fetch API 向另一个域名发出跨源请求时，浏览器会自动进行 CORS 预检请求，也称为预检请求（preflight requests）。这是为了确定服务器是否接受跨源请求，以及哪些 HTTP 方法和头部字段是允许的。预检请求是 OPTIONS 方法的请求，这意味着你的浏览器首先发送一个 OPTIONS 请求，然后才发送实际的 GET 或 POST 请求。因此，你会看到两个请求
+2. `Redirects (重定向)`: 如果服务器返回一个 HTTP 重定向响应（例如，状态码为 302 或 307），浏览器将首先向新的重定向目标 URL 发出一个请求，然后才会继续原始请求。这也可能导致看到两个请求，一个是重定向请求，另一个是最终目标请求
+
 ## BOM
 
 ```js
@@ -29,7 +359,7 @@ $("img").onload = function () {
 
 ```js
 // 获取元素的真实宽高
-window.getComputedStyle(node).height/width // 返回响应的宽高, 单位为像素
+window.getComputedStyle(node).height / width // 返回响应的宽高, 单位为像素
 ```
 
 ```js
@@ -56,60 +386,15 @@ encodeURIComponent方法不会对下列字符编码
 // Url参数字符串中使用key=value键值对这样的形式来传参，键值对之间以&符号分隔，如/s?q=abc&ie=utf- 8。如果你的value字符串中包含了=或者&，那么势必会造成接收Url的服务器解析错误，因此必须将引起歧义的&和=符号进行转义， 也就是对其进行编码
 ```
 
-## 跨域
-
-- 因为浏览器出于安全考虑，有`同源策略`
-  - 如果`协议、域名或者端口`有一个不同就是跨域
-- 主要是用来防止 CSRF(跨站点请求伪造) 攻击的。简单点说，CSRF 攻击是利用用户的登录态发起恶意请求
-
-### jsonp
-
-JSONP 的原理很简单，就是利用 `<script> 标签没有跨域限制的漏洞。通过 <script> 标签指向一个需要访问的地址并提供一个回调函数来接收数据`
-
-```js
-<script src="http://domain/api?param1=a&param2=b&callback=jsonp"></script>
-<script>
-    function jsonp(data) {
-    	console.log(data)
-	}
-</script>
-```
-
-### CORS 跨域资源请求
-
-- CORS 需要浏览器和后端同时支持。IE 8 和 9 需要通过 XDomainRequest 来实现
-- 服务端设置 `Access-Control-Allow-Origin` 就可以开启 CORS
-
-### document.domain
-
-- 该方式只能用于`二级域名相同的情况下`，比如 a.test.com 和 b.test.com 适用于该方式。
-- 只需要给页面添加 `document.domain = 'test.com'` 表示二级域名都相同就可以实现跨域
-
-### postMessage
-
-- 方式通常用于获取嵌入页面中的第三方页面数据。一个页面发送消息，另一个页面判断来源并接收消息
-
-```js
-// 发送消息端
-window.parent.postMessage("message", "http://test.com")
-// 接收消息端
-var mc = new MessageChannel()
-mc.addEventListener("message", (event) => {
-  var origin = event.origin || event.originalEvent.origin
-  if (origin === "http://test.com") {
-    console.log("验证通过")
-  }
-})
-```
-
 ## Service Worker
 
 Service Worker 是运行在浏览器背后的独立线程，一般可以用来实现缓存功能。使用 Service Worker 的话，传输协议必须为 HTTPS。因为 Service Worker 中涉及到请求拦截，所以必须使用 HTTPS 协议来保障安全。
 
-Service Worker 实现缓存功能一般分为三个步骤: 
-  - 首先需要先注册 Service Worker
-  - 然后监听到 install 事件以后就可以缓存需要的文件，
-  - 那么在下次用户访问的时候就可以通过拦截请求的方式查询是否存在缓存，存在缓存的话就可以直接读取缓存文件，否则就去请求数据
+Service Worker 实现缓存功能一般分为三个步骤:
+
+- 首先需要先注册 Service Worker
+- 然后监听到 install 事件以后就可以缓存需要的文件，
+- 那么在下次用户访问的时候就可以通过拦截请求的方式查询是否存在缓存，存在缓存的话就可以直接读取缓存文件，否则就去请求数据
 
 ```js
 // index.js
@@ -191,75 +476,6 @@ Cache-control: no-cache
 - `ETag 和 If-None-Match`
   - ETag 类似于文件指纹，
   - If-None-Match 会将当前 ETag 发送给服务器，询问该资源 ETag 是否变动，有变动的话就将新的资源发送回来。并且 ETag 优先级比 Last-Modified 高
-
-## 安全防范
-
-### XSS
-
-攻击者想尽一切办法将可以执行的代码注入到网页中, 分为两类：`持久型和非持久型。`
-
-`持久型`也就是攻击的代码被服务端写入进数据库中，这种攻击危害性很大，因为如果网站访问量很大的话，就会导致大量正常访问页面的用户都受到攻击。对于评论功能来说，就得防范持久型 XSS 攻击
-
-`非持久性`: 一般通过修改 URL 参数的方式加入攻击代码，诱导用户访问链接从而进行攻击
-
-- 防御 1: `转义字符`
-- 防御 2: CSP 本质上就是建立白名单，开发者明确告诉浏览器哪些外部资源可以加载和执行
-  - 设置 HTTP Header 中的 Content-Security-Policy
-  - 设置 meta 标签的方式 `<meta http-equiv="Content-Security-Policy">`
-
-```http
-# 只允许加载本站资源
-Content-Security-Policy: default-src ‘self’
-
-# 只允许加载 HTTPS 协议图片
-Content-Security-Policy: img-src https://*
-
-# 允许加载任何来源框架
-Content-Security-Policy: child-src 'none'
-```
-
-### CSRF
-
-跨站请求伪造。原理就是攻击者构造出一个后端请求地址，诱导用户点击或者通过某些途径自动发起请求。如果用户是在登录状态下的话，后端就以为是用户在操作，从而进行相应的逻辑
-
-- Get 请求不对数据进行修改
-- 不让第三方网站访问到用户 Cookie
-- 阻止第三方网站请求接口
-- 请求时附带验证信息，比如验证码或者 Token
-
-### 点击劫持
-
-是一种视觉欺骗的攻击手段。攻击者将需要攻击的网站通过 iframe 嵌套的方式嵌入自己的网页中，并将 iframe 设置为透明，在页面中透出一个按钮诱导用户点击
-
-- `X-FRAME-OPTIONS` 是一个 HTTP 响应头，在现代浏览器有一个很好的支持。这个 HTTP 响应头 就是为了防御用 iframe 嵌套的点击劫持攻击。
-- JS 防御
-
-```js
-<head>
-  <style id="click-jack">
-    html {
-      display: none !important;
-    }
-  </style>
-</head>
-<body>
-  <script>
-    if (self == top) {
-      var style = document.getElementById('click-jack')
-      document.body.removeChild(style)
-    } else {
-      top.location = self.location
-    }
-  </script>
-</body>
-```
-
-### 中间人攻击
-
-是攻击方同时与服务端和客户端建立起了连接，并让对方认为连接是安全的，但是实际上整个通信过程都被攻击者控制了。攻击者不仅能获得双方的通信信息，还能修改通信信息
-
-- 不建议使用公共的 Wi-Fi，因为很可能就会发生中间人攻击的情况
-- 只需要增加一个安全通道来传输信息。HTTPS 就可以用来防御中间人攻
 
 ## 性能优化琐碎事
 
@@ -515,36 +731,13 @@ GET /images/log HTTP/1.1
 - `Expires: `内容的过期时间
 - `Last-Modified: `内容的最后修改时间
 
-### 常见状态码
+### SSL
 
-状态码表示了响应的一个状态，可以让我们清晰的了解到这一次请求是成功还是失败，如果失败的话，是什么原因导致的，当然状态码也是用于传达语义的。如果胡乱使用状态码，那么它存在的意义就没有了。
+HTTPS 还是通过了 HTTP 来传输信息，但是信息通过 SSL 协议进行了加密。
 
-- 2xx 代表成功
-  - `200 ok 请求成功`
-  - `204 no content` 请求成功, 但没有数据返回
-  - `206 partial content` 范围请求
-- 3xx 重定向
-  - `301 永久性重定向` 资源被分配到新的`URL`
-  - `302 临时性重定向` 资源临时被分配到新的 URI
-  - `303` 资源存在另一个 URL, 使用 GET 获取资源
-  - `304` 服务器允许访问资源, 但因发生请求未满足条件的情况
-- 4xx 客户端错误
-  - `400 bad request` 请求存在语法错误
-  - `401 ` 请求需要通过 http 认证
-  - `403` 请求访问资源被拒绝
-  - `404` 服务器上找不到资源
-- 5xx 服务端错误
-  - `500` 服务器端在执行请求时发生了错误
-  - `501` 服务器不支持当前请求的某个功能
-  - `503` 服务器处于停机维护, 无法处理请求
+SSL 协议位于传输层之上，应用层之下。首次进行 SSL 协议传输需要两个 RTT ，接下来可以通过 Session Resumption 减少到一个 RTT。
 
-### TLS
-
-HTTPS 还是通过了 HTTP 来传输信息，但是信息通过 TLS 协议进行了加密。
-
-TLS 协议位于传输层之上，应用层之下。首次进行 TLS 协议传输需要两个 RTT ，接下来可以通过 Session Resumption 减少到一个 RTT。
-
-在 TLS 中使用了两种加密技术，分别为：对称加密和非对称加密。
+在 SSL 中使用了两种加密技术，分别为：对称加密和非对称加密。
 
 1. 对称加密
 
@@ -563,7 +756,7 @@ TLS 协议位于传输层之上，应用层之下。首次进行 TLS 协议传�
 3. 客户端收到服务端的证书并验证是否有效，验证通过会再生成一个随机值，通过服务端证书的公钥去加密这个随机值并发送给服务端，如果服务端需要验证客户端证书的话会附带证书
 4. 服务端收到加密过的随机值并使用私钥解密获得第三个随机值，这时候两端都拥有了三个随机值，可以通过这三个随机值按照之前约定的加密方式生成密钥，接下来的通信就可以通过该密钥来加密解密
 
-通过以上步骤可知，在 TLS 握手阶段，两端使用非对称加密的方式来通信，但是因为非对称加密损耗的性能比对称加密大，所以在正式传输数据时，两端使用对称加密的方式通信。
+通过以上步骤可知，在 SSL 握手阶段，两端使用非对称加密的方式来通信，但是因为非对称加密损耗的性能比对称加密大，所以在正式传输数据时，两端使用对称加密的方式通信。
 
 ## HTTP2
 
@@ -673,9 +866,6 @@ QUIC 虽然基于 UDP，但是在原本的基础上新增了很多功能，比�
 
 - 因为 DOM 是属于渲染引擎中的东西，而 JS 又是 JS 引擎中的东西。当我们通过 JS 操作 DOM 的时候，其实这个操作涉及到了两个线程之间的通信
 
-
-
-
 ## 浏览器是如何渲染页面的?
 
 当浏览器的网络线程收到 HTML 文档后,会产生一个渲染任务,并将其传递给渲染主线程的消息队列
@@ -684,13 +874,13 @@ QUIC 虽然基于 UDP，但是在原本的基础上新增了很多功能，比�
 
 ---
 
-整个渲染流程分为多个阶段, 分别是: HTML解析 样式计算 布局 分层 绘制 分块 画, 每个阶段都有明确的输入输出,上一个阶段的输出会成为下一个阶段的输入, 这样, 整个渲染流程形成了一套组织严密的流水线
+整个渲染流程分为多个阶段, 分别是: HTML 解析 样式计算 布局 分层 绘制 分块 画, 每个阶段都有明确的输入输出,上一个阶段的输出会成为下一个阶段的输入, 这样, 整个渲染流程形成了一套组织严密的流水线
 
 ---
 
-渲染第一步解析 HTML: 解析过程中遇到 CSS 解析 CSS, 遇到 JS 执行 JS, 为了提高解析效率, 会启动一个预解析的线程, 率先下载 HTML 中的外部 CSS 文件和外部 JS 文件. 如果主线程解析到 link 位置, 外部的 CSS 文件还没有下载解析好, 主线程不会等待, 继续解析后序的 HTML, 这是因为下载和解析 CSS 工作是在预解析线程中进行的.这就是 CSS 不会阻塞 HTML 解析的根本原因;  
+渲染第一步解析 HTML: 解析过程中遇到 CSS 解析 CSS, 遇到 JS 执行 JS, 为了提高解析效率, 会启动一个预解析的线程, 率先下载 HTML 中的外部 CSS 文件和外部 JS 文件. 如果主线程解析到 link 位置, 外部的 CSS 文件还没有下载解析好, 主线程不会等待, 继续解析后序的 HTML, 这是因为下载和解析 CSS 工作是在预解析线程中进行的.这就是 CSS 不会阻塞 HTML 解析的根本原因;
 
-如果主线程解析到 script 位置,会停止解析 HTML, 转而等待 JS 文件下载好, 并将全局代码解析完成后, 才能继续解析 HTML. 这是因为 JS 代码的执行过程可能会修改当前的 DOM 树, 所以 DOM 树的生成必须暂停, 就是JS 会阻塞 HTML 解析的根本原因
+如果主线程解析到 script 位置,会停止解析 HTML, 转而等待 JS 文件下载好, 并将全局代码解析完成后, 才能继续解析 HTML. 这是因为 JS 代码的执行过程可能会修改当前的 DOM 树, 所以 DOM 树的生成必须暂停, 就是 JS 会阻塞 HTML 解析的根本原因
 
 第一步完成后, 会得到 DOM 树和 CSSOM 树, 浏览器的默认样式 内部样式 外部样式 行内样式均会包含在 CSSOM 树中
 
@@ -700,15 +890,15 @@ QUIC 虽然基于 UDP，但是在原本的基础上新增了很多功能，比�
 
 ---
 
-第三步是布局: 布局完成后会得到布局树, 布局阶段会依次遍历 DOM 树的每一个节点, 计算每个节点几何信息, 例如节点的宽高, 相对包含块的位置, 大部分时候,  DOM 树和布局树并非一一对应, 比如 `display: none `节点没有几何信息, 因此不会生成到布局树; 又比如使用了伪元素选择器, 虽然DOM树中没有这些伪元素节点, 但它们拥有几何信息, 所以会生成到布局树中.
+第三步是布局: 布局完成后会得到布局树, 布局阶段会依次遍历 DOM 树的每一个节点, 计算每个节点几何信息, 例如节点的宽高, 相对包含块的位置, 大部分时候, DOM 树和布局树并非一一对应, 比如 `display: none `节点没有几何信息, 因此不会生成到布局树; 又比如使用了伪元素选择器, 虽然 DOM 树中没有这些伪元素节点, 但它们拥有几何信息, 所以会生成到布局树中.
 
 ---
 
 第四步是分层: 主线程会使用一个复杂的策略对整个布局进行分层, 分层的好处在于, 将来某一个层改变后, 仅会对该层进行处理, 从而提升效率, `滚动条, 堆叠上下文, transform, opacity` 等样式都或多或少的影响分层结果, 也可以通过 `will-change` 属性更大程度影响分层
 
---- 
+---
 
-第五步绘制: 为每一层生成绘制的指令, 用于描述这一层该如何画出来, 
+第五步绘制: 为每一层生成绘制的指令, 用于描述这一层该如何画出来,
 
 ---
 
@@ -720,4 +910,4 @@ QUIC 虽然基于 UDP，但是在原本的基础上新增了很多功能，比�
 
 ---
 
-最后就是画: 合成线程拿到每个层, 每个块的位图后, 生成一个个`指引 quad` 信息, 指引会标识出每个位图应该画到屏幕的那个位置, 以及考虑旋转, 变形等. 变形发生在 合成线程, 与渲染主线程无关, 就是`transform` 效率高的原因. 合成线程会把 quad  提交给 GPU 进程, 由 GPU 进程产生系统调用, 提交给 GPU 硬件, 完成最终屏幕成像
+最后就是画: 合成线程拿到每个层, 每个块的位图后, 生成一个个`指引 quad` 信息, 指引会标识出每个位图应该画到屏幕的那个位置, 以及考虑旋转, 变形等. 变形发生在 合成线程, 与渲染主线程无关, 就是`transform` 效率高的原因. 合成线程会把 quad 提交给 GPU 进程, 由 GPU 进程产生系统调用, 提交给 GPU 硬件, 完成最终屏幕成像

@@ -723,9 +723,11 @@ transition 和 animation 是 CSS 用于创建动画效果的两种不同的属�
 - justify-content: 'center' | 'space-between' | 'space-around' | 'felx-start' | 'flex-end' 主轴方向的对齐方式
 - align-items: 'center' | 'stretch' | 'flex-start' | 'flex-end' | 'baseline' 侧轴对齐方式
 - align-content: 多行/列内容对齐方式
-- flex-grow: 增长比例(空间过多时)
-- flwx-shrink 收缩比例(空间不够时)
-- flex-basis 默认大小, 一般不写
+- flex-grow: 增长比例(空间过多时) 默认为 0，即如果存在剩余空间，也不放大
+  - 如果所有项目的 flex-grow 属性都为 1，则它们将等分剩余空间（如果有的话）。如果一个项目的 flex-grow 属性为 2，其他项目都为 1，则前者占据的剩余空间将比其他项多一倍。
+- flwx-shrink 收缩比例(空间不够时) 默认为 1，即如果空间不足，该项目将缩小
+  - 如果所有项目的 flex-shrink 属性都为 1，当空间不足时，都将等比例缩小。如果一个项目的 flex-shrink 属性为 0，其他项目都为 1，则空间不足时，前者不缩小。
+- flex-basis 默认大小 auto, 一般不写; 定义了在分配多余空间之前，项目占据的主轴空间（main size）
 - flex 上面三个的缩写
-- order 改变的展示顺序
+- order 改变的展示顺序 默认为 0
 - align-self 自身的对齐方式, 已经对齐的情况下, 自己选择自己的对齐方式

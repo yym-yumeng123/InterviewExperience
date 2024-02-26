@@ -637,7 +637,8 @@ child2.getName() // ['zhangsan']
 ### target 和 currentTarget
 
 - `e.target`：**触发**事件的元素
-- `e.currentTarget`：**绑定**事件的元素
+  - target 事件属性可返回事件的目标节点（触发该事件的节点，也就是事件发生的源头，事件发生所绑定的那个节点），如生成事件的元素、文档或窗口。也就是说，监听冒泡或者捕获事件的 target，会返回事件发生的那个元素，而不是冒泡或者捕获事件触发的元素
+- `e.currentTarget`：**绑定**事件的元素: 返回其监听器触发事件的节点，即当前处理该事件的元素、文档或窗口。包括冒泡和捕获事件。
 
 ```html
 <div id="a">
@@ -881,6 +882,11 @@ const handle = {
 
 const proxyPerson = new Proxy(person, handle)
 ```
+
+### document.ready 和 window.onload 的区别
+
+1. ready 事件在 DOM 结构绘制完成之后就会执行，这样能确保就算有大量的媒体文件没加载出来，JS 代码一样可以执行。
+2. load 事件必须等到网页中所有内容全部加载完毕之后才被执行。如果一个网页中有大量的图片的话，则就会出现这种情况：网页文档已经呈现出来，但由于网页数据还没有完全加载完毕，导致 load 事件不能够即时被触发。
 
 ## ES6+
 
@@ -1476,6 +1482,25 @@ let timer = setInterval(() => {
     timer = null
   }
 }, 1000)
+```
+
+### 迭代器
+
+`Iterator` 是一种接口，目的是为不同的数据结构提供统一的数据访问机制; 可以理解为 `Iterator` 接口主要为 `for of` 服务的，供 `for...of` 进行消费
+
+```js
+const obj = {
+  [Symbol.iterator]: function () {
+    return {
+      next: function () {
+        return {
+          value: 1,
+          done: true,
+        }
+      },
+    }
+  },
+}
 ```
 
 ## 杂谈
