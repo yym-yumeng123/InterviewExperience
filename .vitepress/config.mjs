@@ -24,6 +24,10 @@ export default defineConfig({
         link: '/started/started'
       },
       {
+        text: "必备问题",
+        link: '/other/other'
+      },
+      {
         text: '前端',
         items: [
           { text: 'HTML和CSS', link: '/html/html' },
