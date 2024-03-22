@@ -5,160 +5,19 @@ title: "HTML/CSS"
 # aside: left
 ---
 
-## HTML 知识点
-
-### Repaint 重绘 Reflow 回流
-
-`重绘（repaints）`是一个元素外观的改变所触发的浏览器行为，例如改变 vidibility、outline、背景色等属性。浏览器会根据元素的新属性重新绘制，使元素呈现新的外观。重绘不会带来重新布局，并不一定伴随回流。
-
-`回流（reflow）`布局或者几何属性需要改变就称为回流
-
-引起重绘和回流的一些操作
-
-- 当你增加、删除、修改 DOM 结点时，会导致 Reflow 或 Repaint
-- 当你移动 DOM 的位置，或是搞个动画的时候
-- 当你修改 CSS 样式的时候
-- 当你 Resize 窗口的时候（移动端没有这个问题），或是滚动的时候。
-- 当你修改网页的默认字体时
-  - 注：`display:none 会触发 reflow，而 visibility:hidden 只会触发 repaint`，因为没有发现位置变化。
-
-减少重绘和回流
-
-- 使用 `transform 替代 top`
-- 使用 `visibility 替换 display: none` ，因为前者只会引起重绘，后者会引发回流
-- 不要把节点的属性值放在一个循环里当成循环里的变量
-- 不要使用 `table 布局`，可能很小的一个小改动会造成整个 table 的重新布局
-- 动画实现的速度的选择，动画速度越快，回流次数越多，也可以选择使用 requestAnimationFrame
-- CSS 选择符从右往左匹配查找，避免节点层级过多
-
-### doctype 的作用是什么？
-
-声明文档类型，告知浏览器用什么文档标准解析这个文档：
-
-- 怪异模式：浏览器使用自己的模式解析文档，不加 doctype 时默认为怪异模式
-- 标准模式：浏览器以 W3C 的标准解析文档
-
-### HTML 的 meta 标签
-
-```md
-<!-- meta 元数据不会显示在客户端，但是会被浏览器解析 -->
-<head>
-  <!-- 定义HTML文档的字符集 -->
-  <meta charset="UTF-8" >
-  <!-- 定义web页面描述 -->
-  <meta name="description" content="我是meta">
-  <!-- 定义文档关键词，用于搜索引擎 -->
-  <meta name="keywords" content="HTML,CSS,XML,JavaScript">
-  <!-- 定义作者 -->
-  <meta name="author" content="张三">
-  <!-- width: viewport 的宽度 -->
-  <!-- height: viewport 的高度  -->
-  <!-- user-scalable: 是否允许缩放  -->
-  <!-- initial-scale: 初始化比例 1-10  -->
-  <!-- minimum-scale: 允许缩放的最小比例  -->
-  <!-- maximum-scale: 允许缩放的最打比例  -->
-  <meta name="viewport" 
-    content="
-      width=device-width,
-      height=device-height, 
-      user-scalable=no,
-      initial-scale=1, 
-      minimum-scale=1, 
-      maximum-scale=1,
-      target-densitydpi=device-dpi"
-  >
-
-  <!-- http-equiv：可用于模拟http请求头，可设置过期时间、缓存、刷新 -->
-  <!-- 每 30s 刷新页面 -->
-  <meta http-equiv="refresh" content="30">
-  <!-- expires，指定缓存过期时间 -->
-  <meta http-equiv="expires" content="Wed, 20 Jun 2019 22:33:00 GMT">
-  <!-- 30秒后缓存过期 -->
-  <meta http-equiv="expires" content="30">
-  <!-- 禁止浏览器从本地计算机的缓存中访问页面内容 -->
-  <meta http-equiv="Pragma" content="no-cache">
-</head>
-```
-
-### 行内元素? 块级元素? 空元素?
-
-- 参与块级布局的内容被称为块级内容
-  - 有自己的宽度和高度
-  - 独自占据一行; 默认宽度为父元素的宽度
-  - 可以包含行内元素
-  - 有`<h1> <p> <ul> <div> <table> <td>` etc...
-- 参与行内布局的内容被称为行级内容（inline-level content）
-  - 不会独占一行, 相邻的行内元素在同一行
-  - 高度无效, 可以设置行高; 对外边距和内边距仅设置左右方向有效, 上下无效
-  - 不能包含块级元素
-  - 有 `<span /> <a /> <em/> <strong>` etc...
-- 空元素（empty element）是 HTML 中不能存在子节点（例如内嵌的元素或者文本节点）的元素。空元素只有开始标签且不能指定结束标签
-  - 有 `<br /> <hr /> <meta /> <link> <input />` etc...
-- 通过`display: block/inline/inline-block` 转换
-
-### 导入样式, link 与 @import 区别?
-
-1. `link` 标签作为 HTML 元素，不存在兼容性问题; `@import`是 CSS2.1 才有的语法，故只可在 IE5+ 才能识别
-2. `link` 标签引入的 CSS 被同时加载; `@import` 引入的 CSS 在页面加载完毕后被加载
-3. JS 可以操作 DOM, 插入 `link`; 无法操作 `@import`
-
-### href 和 src 有什么区别
-
-`href（hyperReference)` 即超文本引用：当浏览器遇到 href 时，会并行的地下载资源，不会阻塞页面解析，例如我们使用`<link>`引入 CSS，浏览器会并行地下载 CSS 而不阻塞页面解析. 因此我们在引入 CSS 时建议使用`<link>`而不是`@import`
-
-```html
-<link href="style.css" rel="stylesheet" />
-```
-
-`src (resource)` 即资源，当浏览器遇到 src 时，会暂停页面解析，直到该资源下载或执行完毕，这也是 script 标签之所以放底部的原因
-
-```html
-<script src="script.js"></script>
-```
-
-### img 标签 alt 和 title 属性的区别
-
-```md
-<!-- title: 鼠标移入到图片显示的值; alt: 图片无法加载时显示的值 -->
-<img src="image.jpg" alt="image description" title="image tooltip">
-```
-
-### HTML5 有哪些新特性
-
-1. 语义化标签 `header footer nav section article aside dialog main`
-2. 新增 input 输入特性 `color date tel search range 等`
-3. 表单元素: `details progress meter`
-4. 视频和音频 `audio video`
-5. `canvas svg`
-6. 地理位置: `window.navigator.geolocation`
-7. 拖放 API `drag`
-8. 地理定位: `getCurrentPosition()`方法来获取用户的位置，可以基于此实现计算位置距离
-9. `Web Storage` 本地存储用户的浏览数据
-10. etc...
-
-### post 和 get 区别
-
-1. get 提交的数据 url 可以看到; post 看不到
-2. get 是拼接 url; post 放在 http 请求体中
-3. get 最多提交 1k 数据, 浏览器限制; post 理论上无限制
-4. get 提交的数据在浏览器历史记录可以看到
-5. get 主要是拿数据; post 给数据
-6. get 请求一般会被缓存; post 请求默认是不进行缓存的
-7. get 请求的参数会被保存在历史记录中; post 不会
-
 ## CSS 知识点
 
 ### css 元素的宽高 & 文档流
 
 1. 内联元素的宽高
-   - 宽度由 padding, margin border 以及里面的内容影响, margin padding 不影响高度
-   - 高度由行高决定
+    - 宽度由 padding, margin border 以及里面的内容影响, margin padding 不影响高度
+    - 高度由行高决定
 2. 块级元素的宽高
-   - 宽度自适应父元素
-   - 高度由`内部文档流中元素的总和决定的`
+    - 宽度自适应父元素
+    - 高度由`内部文档流中元素的总和决定的`
 3. 文档流
-   - 文档流中的内联元素会从左到右并列排成一行, 空间不够, 会换行依次排列; 块级元素从上到下
-   - 脱离文档流: `浮动 绝对定位 fixed`
+    - 文档流中的内联元素会从左到右并列排成一行, 空间不够, 会换行依次排列; 块级元素从上到下
+    - 脱离文档流: `浮动 绝对定位 fixed`
 4. 字体的高度由设计师给一个一个行高; 字和字通过基线对齐
 5. 多个 `inline-block` 元素之间有空格, 尽量不用 inline-block; 手动添加空格 `&nbsp;`
 
@@ -166,10 +25,10 @@ title: "HTML/CSS"
 
 1. !important 规则: 如果有!important 声明，那么该规则具有最高的优先级
 2. 特定性: 特定性值的大小来排序，特定性值较大的规则具有更高的优先级，权重计算方式如下
-   - 内联样式: 每个内联样式规则的特定性为 1000
-   - ID 选择器: 每个 ID 选择器的特定性为 100
-   - 类选择器、属性选择器和伪类选择器: 每个类选择器、属性选择器和伪类选择器的特定性为 10
-   - 元素选择器和伪元素选择器: 每个元素选择器和伪元素选择器的特定性为 1
+    - 内联样式: 每个内联样式规则的特定性为 1000
+    - ID 选择器: 每个 ID 选择器的特定性为 100
+    - 类选择器、属性选择器和伪类选择器: 每个类选择器、属性选择器和伪类选择器的特定性为 10
+    - 元素选择器和伪元素选择器: 每个元素选择器和伪元素选择器的特定性为 1
 
 ### css 属性的继承性
 
@@ -284,10 +143,10 @@ div 不是平面的,三维概念, 最下到最上层 (在浏览器通过颜色, 
 ### ::before 和 :after 双冒号和但冒号区别
 
 1. `::伪元素` | `:伪类`
-   - CSS3 伪类（Pseudo-classes）: 伪类用于选择文档中的特定元素，通常基于它们的状态、位置或属性
-   - `:hover :active :focus :firsy-child`
-   - CSS3 伪元素（Pseudo-elements）: 伪元素用于在文档中生成虚拟元素，通常用于添加样式或内容
-   - `::before ::after ::first-letter`
+    - CSS3 伪类（Pseudo-classes）: 伪类用于选择文档中的特定元素，通常基于它们的状态、位置或属性
+    - `:hover :active :focus :firsy-child`
+    - CSS3 伪元素（Pseudo-elements）: 伪元素用于在文档中生成虚拟元素，通常用于添加样式或内容
+    - `::before ::after ::first-letter`
 2. ::before 元素之前; :after 元素之后(清除浮动)
 
 ### chrome 支持小于 12px 的文字
@@ -298,8 +157,8 @@ div 不是平面的,三维概念, 最下到最上层 (在浏览器通过颜色, 
 
 1. 移动端自适应通过设置计算 html {font-size: "px"}, 配合使用 `rem`
 2. 响应式: 一个 url 可以响应多端
-   - 媒体查询 `@media`
-   - 响应式图片
+    - 媒体查询 `@media`
+    - 响应式图片
 
 ```js
 // 自适应
@@ -321,20 +180,20 @@ window.onresize = function() {
 ### 元素居中
 
 1. 水平居中
-   1. 被设置元素为文本、图片等行内元素时, 给父元素 `text-align: center`
-   2. 被设置元素为 块状元素
-      1. 定宽元素: `margin: value auto`
-      2. 不定宽元素
-         1. 在子元素上 `display: table; margin: 0 auto`
-         2. 父元素 `text-align: center`, 子元素 `inline-block`
-         3. `position: absolute; transform: translateX(-50%)`
-         4. `display: flex`
+    1. 被设置元素为文本、图片等行内元素时, 给父元素 `text-align: center`
+    2. 被设置元素为 块状元素
+        1. 定宽元素: `margin: value auto`
+        2. 不定宽元素
+            1. 在子元素上 `display: table; margin: 0 auto`
+            2. 父元素 `text-align: center`, 子元素 `inline-block`
+            3. `position: absolute; transform: translateX(-50%)`
+            4. `display: flex`
 2. 垂直居中
-   1. 父元素高度确定的单行文本 `height == line-height`
-   2. 父元素高度不确定的多行文本
-      1. `display: table-cell; vertical-align: middle`
-      2. `absolute + transform`
-      3. `flex align-items`
+    1. 父元素高度确定的单行文本 `height == line-height`
+    2. 父元素高度不确定的多行文本
+        1. `display: table-cell; vertical-align: middle`
+        2. `absolute + transform`
+        3. `flex align-items`
 3. 水平垂直居中: 是上面水平居中和水质居中的结合
 
 ### CSS 的盒子模型
@@ -384,12 +243,12 @@ div {
 ```
 
 1. 响应式: 是否有设计图, 不同尺寸的设计图
-   - 0-320px 一套 css
-   - 320-375px 一套 css
-   - ...
-   - 百分比布局 宽度百分比好写, 高度百分比不好弄
-   - 整体缩放 rem
-     - 一切单位以宽度为基准
+    - 0-320px 一套 css
+    - 320-375px 一套 css
+    - ...
+    - 百分比布局 宽度百分比好写, 高度百分比不好弄
+    - 整体缩放 rem
+        - 一切单位以宽度为基准
 
 ```js
 // html font-size = 页面宽度
@@ -411,23 +270,23 @@ document.write(`<style>html{font-size:${pageWidth / 10}px}</style>`)
 
 - `height`: 元素的高度值
 - `line-height`: 每一行文字的高度, 文字换行, 盒子高度会增大
-  - line-height 用于控制文本行的垂直间距
-  - `line-height为number`时,继承为直接继承,所以如果给下面的元素设置行高,等于字体大小乘以 number 值
-  - `line-height:百分比`;先计算,在继承
+    - line-height 用于控制文本行的垂直间距
+    - `line-height为number`时,继承为直接继承,所以如果给下面的元素设置行高,等于字体大小乘以 number 值
+    - `line-height:百分比`;先计算,在继承
 
 ### inline-block 有什么特性？如何去除缝隙？高度不一样的 inline-block 元素如何顶端对齐?
 
 1. 特性
 
-   - 既呈现 inline 的特性，不占据一整行; 宽度由内容宽度决定
-   - 又呈现 block 的特性，可设置宽高, 内外边距
+    - 既呈现 inline 的特性，不占据一整行; 宽度由内容宽度决定
+    - 又呈现 block 的特性，可设置宽高, 内外边距
 
 2. CSS 更改`非inline-block水平元素`为 inline-block 水平，元素之间会出现缝隙,
 
-   - 元素间留白间距出现的原因就是`标签段之间的空格`，因此，去掉 HTML 中的空格，自然间距就木有了
-   - 使用 margin 负值
-   - 闭合标签处理
-   - 使用 font-size:0
+    - 元素间留白间距出现的原因就是`标签段之间的空格`，因此，去掉 HTML 中的空格，自然间距就木有了
+    - 使用 margin 负值
+    - 闭合标签处理
+    - 使用 font-size:0
 
 ```md
 a {
@@ -500,9 +359,9 @@ BFC 特性
 BFC 功能
 
 - 父元素管住子元素 `float : 'left' | 'right'`; `display: flow-root`
-  - 父元素触发了 BFC, 子元素就只能乖乖的听话
+    - 父元素触发了 BFC, 子元素就只能乖乖的听话
 - 兄弟元素之间划清界限
-  - 兄弟触发 bfc
+    - 兄弟触发 bfc
 
 触发 BFC
 
@@ -530,14 +389,14 @@ BFC 功能
 下面字体的大小 `100px` 是什么的高度
 
 - 字体不同, font-size 显示的大小不同, 每个字体有一个默认的 `推荐行高` em-square
-  - font-size 即不指字体大小, 也不指字体高度, 而是设计字体时给定的
+    - font-size 即不指字体大小, 也不指字体高度, 而是设计字体时给定的
 - line-height 指定一个内联元素真实的占地高度
-  - 字体基于基线对齐, 不同字体基线对齐方式, 会导致父元素变大
-  - 默认值 = 设计字体的给定的 normal
+    - 字体基于基线对齐, 不同字体基线对齐方式, 会导致父元素变大
+    - 默认值 = 设计字体的给定的 normal
 - `vertical-align: top` 怎么对齐的?
-  - 不同字体留的行高不同, 导致实际占地面积不同, 顶部不同, 所以经常看着对不齐
+    - 不同字体留的行高不同, 导致实际占地面积不同, 顶部不同, 所以经常看着对不齐
 - 行内元素默认基线对齐, 既使看不见元素
-  - 单独一张图片下面的缝隙: 因为图片要对齐行内元素, `vertical-align: middle`
+    - 单独一张图片下面的缝隙: 因为图片要对齐行内元素, `vertical-align: middle`
 
 ```css
 span {
@@ -592,12 +451,12 @@ span {
 ### 白屏 和 FOUC(无样式内容闪烁)
 
 - 白屏
-  - 把样式放在底部, 对于 IE 浏览器, 在某些场景下(刷新, 新窗口打开等)页面会出现白屏, 而不是内容逐步展现
-  - 使用`@import`标签, 既使 CSS 放入 link, 并且放在头部, 也可能出现白屏
+    - 把样式放在底部, 对于 IE 浏览器, 在某些场景下(刷新, 新窗口打开等)页面会出现白屏, 而不是内容逐步展现
+    - 使用`@import`标签, 既使 CSS 放入 link, 并且放在头部, 也可能出现白屏
 - fouc 出现的条件
-  - 样式表放在页面底部,此方式由于 IE 会先加载整个 HTML 文档的 DOM，然后再去导入外部的 CSS 文件，因此，在页面 DOM 加载完成到 CSS 导入完成中间会有一段时间页面上的内容是没有样式的，这段时间的长短跟网速，电脑速度都有关系。
-  - 有多个样式表, 放在 html 不同位置
-  - 使用`@import`方法导入 css,
+    - 样式表放在页面底部,此方式由于 IE 会先加载整个 HTML 文档的 DOM，然后再去导入外部的 CSS 文件，因此，在页面 DOM 加载完成到 CSS 导入完成中间会有一段时间页面上的内容是没有样式的，这段时间的长短跟网速，电脑速度都有关系。
+    - 有多个样式表, 放在 html 不同位置
+    - 使用`@import`方法导入 css,
 
 **原理**
 
@@ -607,7 +466,7 @@ span {
 
 - 使用`link`标签将样式表放在文档`head`中。
 - 将 JS 放在底部
-  - 脚本会阻塞后面内容的呈现
+    - 脚本会阻塞后面内容的呈现
 
 ### offset、scroll、client
 
@@ -724,9 +583,9 @@ transition 和 animation 是 CSS 用于创建动画效果的两种不同的属�
 - align-items: 'center' | 'stretch' | 'flex-start' | 'flex-end' | 'baseline' 侧轴对齐方式
 - align-content: 多行/列内容对齐方式
 - flex-grow: 增长比例(空间过多时) 默认为 0，即如果存在剩余空间，也不放大
-  - 如果所有项目的 flex-grow 属性都为 1，则它们将等分剩余空间（如果有的话）。如果一个项目的 flex-grow 属性为 2，其他项目都为 1，则前者占据的剩余空间将比其他项多一倍。
+    - 如果所有项目的 flex-grow 属性都为 1，则它们将等分剩余空间（如果有的话）。如果一个项目的 flex-grow 属性为 2，其他项目都为 1，则前者占据的剩余空间将比其他项多一倍。
 - flwx-shrink 收缩比例(空间不够时) 默认为 1，即如果空间不足，该项目将缩小
-  - 如果所有项目的 flex-shrink 属性都为 1，当空间不足时，都将等比例缩小。如果一个项目的 flex-shrink 属性为 0，其他项目都为 1，则空间不足时，前者不缩小。
+    - 如果所有项目的 flex-shrink 属性都为 1，当空间不足时，都将等比例缩小。如果一个项目的 flex-shrink 属性为 0，其他项目都为 1，则空间不足时，前者不缩小。
 - flex-basis 默认大小 auto, 一般不写; 定义了在分配多余空间之前，项目占据的主轴空间（main size）
 - flex 上面三个的缩写
 - order 改变的展示顺序 默认为 0
